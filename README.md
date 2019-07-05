@@ -13,6 +13,12 @@ Very simple, just include several files:
 <br>
 using namespace sag;
 
-
+<code>
+int main()
+{
+  bdig <200, 200, unsigned long> digit = 1234567890;
+  digit *= 100;
+}
+</code>
 
 # bignumbers
