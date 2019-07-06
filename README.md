@@ -3,7 +3,8 @@
 Trying to create template for simple usage of big numbers.
 
 Usage
-Very simple, just include several files:
+
+Just include several files:
 
 ```C++
 #include <limits> 
