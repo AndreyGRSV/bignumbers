@@ -2,7 +2,7 @@
 
 Main goal is to create template for simple usage of big numbers with fixed point that can be used with compilers of C++98 standard.
 
-Usage
+Usage:
 
 ```C++
 //Just include several files:
