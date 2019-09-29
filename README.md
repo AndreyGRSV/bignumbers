@@ -4,9 +4,8 @@ Main goal is to create template for simple usage of big numbers with fixed point
 
 Usage
 
-Just include several files:
-
 ```C++
+//Just include several files:
 #include <limits> 
 #include <string>
 #include "bdig.hpp"
