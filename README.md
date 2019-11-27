@@ -1,6 +1,7 @@
-# bignumbers
+# Bignumbers
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9db81fd6023c4df18a42a86820c4cd0a)](https://www.codacy.com/manual/AndreyGRSV/bignumbers?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AndreyGRSV/bignumbers&amp;utm_campaign=Badge_Grade)
+[![Minimum C++ Standard](https://img.shields.io/badge/standard-C%2B%2B98-blue)](https://img.shields.io/badge/standard-C%2B%2B98-blue)
 
 Main goal is to create template for simple usage of big numbers with fixed point that can be used with compilers of C++98 standard.
 
