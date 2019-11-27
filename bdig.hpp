@@ -794,7 +794,7 @@ private:
 				t = -t * x * x / (2 * i * (2 * i + 1));
 				sum += t;
 			}
-			return (a / 180 % 2 ? -sum : sum);
+			return ((a / 180 % 2) ? -sum : sum);
 		}
 		bdig cos(int a, const int iterations = 140)
 		{
