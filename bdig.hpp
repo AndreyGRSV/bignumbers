@@ -253,8 +253,8 @@ namespace sag
 			int src_msi = src.most_significant_index ();
 			if (src_msi < msi)
 				return *this;
-			int most_idx = bit_most / std::numeric_limits<T>::digits + bit_most % std::numeric_limits<T>::digits ? 1 : 0;
-			int least_idx = bit_least / std::numeric_limits<T>::digits + bit_least % std::numeric_limits<T>::digits ? 1 : 0;
+			int most_idx = bit_most / std::numeric_limits<T>::digits + ((bit_most % std::numeric_limits<T>::digits) ? 1 : 0);
+			int least_idx = bit_least / std::numeric_limits<T>::digits + ((bit_least % std::numeric_limits<T>::digits) ? 1 : 0);
 			if (least_idx)
 				least_idx = 1;
 
@@ -486,7 +486,6 @@ namespace sag
 			{
 				i10.integer.set(isz - 1, (prec ? 10 : 1));
 				i10 = i10.pow(prec, false);
-				std::string ss = i10;
 			}
 			return i10;
 		}
@@ -811,7 +810,7 @@ private:
 				t = -t * x * x / (2 * i * (2 * i - 1));
 				sum += t;
 			}
-			return (a / 180 % 2 ? -sum : sum);
+			return ((a / 180 % 2) ? -sum : sum);
 		}
 		bdig log2(const bdig& n, const int iterations = 100)
 		{
@@ -1422,7 +1421,7 @@ private:
 		{
 			int pos = isz - (number / std::numeric_limits<T>::digits) - 1;
 			T mask = ((T)1 << number % std::numeric_limits<T>::digits);
-			return (integer[pos] & mask ? 1 : 0);
+			return ((integer[pos] & mask) ? 1 : 0);
 		}
 
 		////////////////////////////////////
