@@ -5,6 +5,13 @@
 	Author: Andrey Svyatovets
 */
 
+#include <limits> 
+#include <string>
+#include <memory>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+
 namespace sag
 {
 	const char* pPI_1000 = 
@@ -76,12 +83,14 @@ namespace sag
 	/* Allocation objects in heap for functions with deep recursion   */
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
 	#define DECLOBJ(name) std::unique_ptr<bdig> name
-	#define ASSIGNOBJ(name,param) name = std::make_unique<bdig>(param)
-	#define CRTHEAPOBJ(name,param) DECLOBJ(name) = std::make_unique<bdig>(param)
+	#define ASSIGNOBJ(name,param) name.reset(new bdig(param)) //name = std::make_unique<bdig>(param)
+	#define CRTHEAPOBJ(name,param) DECLOBJ(name) = std::unique_ptr<bdig> (new bdig(param)) //DECLOBJ(name) = std::make_unique<bdig>(param)
+	#define CRTHEAPOBJNP(name) CRTHEAPOBJ(name,)
 #else
 	#define DECLOBJ(name) std::auto_ptr<bdig> name
 	#define ASSIGNOBJ(name, param) name.reset(new bdig(param))
 	#define CRTHEAPOBJ(name, param) std::auto_ptr<bdig> name(new bdig(param))
+	#define CRTHEAPOBJNP(name) std::auto_ptr<bdig> name(new bdig())
 #endif
 
 
@@ -102,20 +111,20 @@ namespace sag
 				memset (_buffer, 0, size * sizeof(Tb));	
 				least_significant_index = size - 1;
 			}
-			const T& operator [](const int idx) const
+			const T& operator [](const unsigned idx) const
 			{
 				if (idx < size)
 					return _buffer[idx];
 				return _buffer[0]; // 
 			}
-			inline void set (const int idx, const Tb _v) 
+			inline void set (const unsigned idx, const Tb _v) 
 			{
 				if (idx < size)
 				{
 					_buffer[idx] = _v;
-					if (idx < (int)least_significant_index && _v)
+					if (idx < least_significant_index && _v)
 						least_significant_index = idx;
-					if (idx == (int)least_significant_index && !_v && idx < size - 1 )
+					if (idx == least_significant_index && !_v && idx < size - 1 )
 						least_significant_index = idx + 1;
 				}
 			}
@@ -192,14 +201,14 @@ namespace sag
 				integer.set(idx, integer[idx] | set_bit);
 			return bit;
 		}
-		void shr (const int bits = 1)
+		void shr (const unsigned bits = 1)
 		{
 			T set_bit = 0;
 
-			int msi = most_significant_index () - 1;
-			msi = std::max (msi, 0);
+			unsigned msi = most_significant_index () - 1;
+			//msi = std::max (msi, 0);
 
-			for (int i = msi; i < isz; i++)
+			for (unsigned i = msi; i < isz; i++)
 			{
 				set_bit = shr_sop (i, bits, set_bit);
 			}
@@ -211,12 +220,21 @@ namespace sag
 		template <class Ti> int most_significant_bit(Ti value, typename enable_if< 
 			   is_same<Ti, unsigned short>::value
 			|| is_same<Ti, unsigned long>::value 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
 			|| is_same<Ti, unsigned long long>::value
+#endif 
 			, Ti>::type = 0) const
 		{
 			typedef typename conditional < is_same<Ti, unsigned short>::value, unsigned char, 
 					typename conditional < is_same<Ti, unsigned long>::value, unsigned short, 
-					typename conditional < is_same<Ti, unsigned long long>::value, unsigned long, void>::type >::type >::type subT;
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+					typename conditional < is_same<Ti, unsigned long long>::value, unsigned long,   
+#endif					
+					void >::type 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+					>::type 
+#endif					
+					>::type subT;
 			if ( value & (Ti)std::numeric_limits<subT>::max() << std::numeric_limits<subT>::digits)
 				return most_significant_bit((subT)(value >> std::numeric_limits<subT>::digits)) + std::numeric_limits<subT>::digits;
 			return most_significant_bit((subT)value);
@@ -272,7 +290,7 @@ namespace sag
 		/* Experimental */
 		bdig& div3 (const bdig& v, bdig *premainder = NULL)
 		{
-			CRTHEAPOBJ(quotient, );
+			CRTHEAPOBJNP(quotient);
 
 			while (true)
 			{
@@ -290,7 +308,7 @@ namespace sag
 					return *this;
 				}
 
-				CRTHEAPOBJ(quotient_tmp, );
+				CRTHEAPOBJNP(quotient_tmp);
 				CRTHEAPOBJ(mul_result, v);
 
 				int bit = 0;
@@ -321,8 +339,8 @@ namespace sag
 		/* Experimental */
 		bdig& div2 (const bdig& v, bdig *premainder = NULL)
 		{
-			CRTHEAPOBJ(quotient, );
-			CRTHEAPOBJ(remainder, );
+			CRTHEAPOBJNP(quotient);
+			CRTHEAPOBJNP(remainder);
 			int msi = most_significant_index();
 			int bits = (isz - msi - 1) * std::numeric_limits<T>::digits + most_significant_bit (integer[msi]);
 
@@ -368,7 +386,7 @@ namespace sag
 		}
 		bdig& div (const bdig& v, bdig *premainder = NULL)
 		{
-			CRTHEAPOBJ(remainder, );
+			CRTHEAPOBJNP(remainder);
 			CRTHEAPOBJ(divisor, v);
 
 			if (!v)
@@ -378,26 +396,26 @@ namespace sag
 			is_negative = false;
 			*remainder = *this;
 			integer.clear();
-			
-			CRTHEAPOBJ(shift, );
+
+			CRTHEAPOBJNP(shift);
 			//(*shift).integer[isz - 1] = 1;
 			(*shift).integer.set (isz - 1, 1);
 			*divisor = (*divisor).abs();
-			int ri, di;
+			unsigned ri, di;
 //#pragma omp parallel sections
 			{
-//#pragma omp section 
-				ri = (*remainder).most_significant_index(); // 
-//#pragma omp section 
-				di = (*divisor).most_significant_index(); // 
+//#pragma omp section
+				ri = (*remainder).most_significant_index(); //
+//#pragma omp section
+				di = (*divisor).most_significant_index(); //
 			}
 			if (ri < di)
 			{
 //#pragma omp parallel sections
 				{
-//#pragma omp section 
+//#pragma omp section
 					(*divisor).shlb(di - ri);
-//#pragma omp section 
+//#pragma omp section
 					(*shift).shlb(di - ri);
 				}
 			}
@@ -440,7 +458,7 @@ namespace sag
 					}
 					else
 					{
-						for (int i = msi; i < isz; i++)
+						for (unsigned i = msi; i < isz; ++i)
 						{
 							set_bit = (*divisor).shr_sop (i, -bits, set_bit);
 							set_bit1 = (*shift).shr_sop (i, -bits, set_bit1);
@@ -451,14 +469,14 @@ namespace sag
 				while ((*divisor) > (*remainder))
 				{
 					T set_bit = 0, set_bit1 = 0;
-					for (int i = msi; i < isz; i++)
+					for (unsigned i = msi; i < isz; i++)
 					{
 						set_bit = (*divisor).shr_sop (i, 1, set_bit);
 						set_bit1 = (*shift).shr_sop (i, 1, set_bit1);
 					}
 				}
 
-				int msi_quotient = most_significant_index (); 
+				int msi_quotient = most_significant_index ();
 				int msi_remainder = (*remainder).most_significant_index ();
 				msi = std::min (msi_remainder, msi_quotient);
 				msi -= 1;
@@ -467,7 +485,7 @@ namespace sag
 				bool cs = false, csm = false;
 				for (int i = isz - 1; i >= msi; --i)
 				{
-					csm = sum_sop(i, *shift, csm); 
+					csm = sum_sop(i, *shift, csm);
 					cs = (*remainder).sub_sop(i, *divisor, cs);
 				}
 				if (!*divisor)
@@ -507,7 +525,14 @@ private:
 
 		typedef typename conditional < is_same<T, unsigned char>::value, unsigned short,
 			typename conditional < is_same<T, unsigned short>::value, unsigned long,
-			typename conditional < is_same<T, unsigned long>::value, unsigned long long, void>::type >::type >::type upT;
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+			typename conditional < is_same<T, unsigned long>::value, unsigned long long,
+#endif
+			void>::type
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+			>::type
+#endif
+			>::type upT;
 
 		template <class Ti>
 		void add (int index, bdig& result, Ti value)
@@ -521,7 +546,7 @@ private:
 
 			if ( r1 ) // overfolow
 			{
-				if (!index) // wole overfolow
+				if (index <= 0) // wole overfolow
 				{
 					// TODO set overfolow value
 					return;
@@ -565,6 +590,7 @@ private:
 			is_negative = store_is_negative != v.is_negative;
 			return *this;
 		}
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 		template <class Ti>
 		bdig& mul (const bdig& v, typename enable_if< is_same<Ti, unsigned long long>::value, Ti>::type = 0)
 		{
@@ -613,6 +639,7 @@ private:
 			is_negative = store_is_negative != v.is_negative;
 			return *this;
 		}
+#endif
 		bool _Cmp (const bdig& v1, const bdig& v2, bool r1, bool r2) const
 		{
 			if (v1.is_negative != v2.is_negative)
@@ -623,9 +650,9 @@ private:
 				// v1 == v2
 				false;
 
-			int start = v1.integer.get_lsi() < v2.integer.get_lsi() ? v1.integer.get_lsi() : v2.integer.get_lsi();
+			unsigned start = v1.integer.get_lsi() < v2.integer.get_lsi() ? v1.integer.get_lsi() : v2.integer.get_lsi();
 			int res = 0;
-			for (int i = start; i < isz; ++i)
+			for (unsigned i = start; i < isz; ++i)
 			{
 				res = (int)(v1.integer[i] < v2.integer[i] ? -1 : v1.integer[i] == v2.integer[i] ? 0 : 1);
 				if (res)
@@ -646,7 +673,7 @@ private:
 		template <class Ti> Ti _toll (typename enable_if<std::numeric_limits<Ti>::is_integer, Ti>::type = 0)
 		{
 			Ti result = 0;
-			for (int i = 0; i < isz; i++)
+			for (unsigned i = 0; i < isz; i++)
 			{
 				result += integer[i];
 				if (i < isz - 1)
@@ -694,7 +721,8 @@ private:
 		{
 			is_negative = false;
 		}
-		template <class Ti> bdig (Ti v, typename enable_if<std::numeric_limits<Ti>::is_integer && !std::numeric_limits<T>::is_signed, Ti>::type = 0)
+		template <class Ti> 
+		bdig (Ti v, typename enable_if<std::numeric_limits<Ti>::is_integer && !std::numeric_limits<T>::is_signed, Ti>::type = 0)
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
 			: bdig()
 		{
@@ -705,7 +733,8 @@ private:
 #endif
 				*this = v;
 		}
-		template <class Ti> bdig (const Ti *v,
+		template <class Ti> 
+		bdig (const Ti *v,
 			typename enable_if < (is_same < unsigned char, Ti >::value ||
 			is_same < char, Ti >::value ||
 			is_same < signed char, Ti >::value) && !std::numeric_limits<T>::is_signed, Ti>::type = 0)
@@ -900,7 +929,7 @@ private:
 				c = (c * base) % modulus;
 			return c;
 		}
-		bdig& modular_pow2(bdig base, bdig exponent, const bdig& modulus)
+		bdig& modular_pow2(bdig base, bdig exponent, const bdig modulus)
 		{
 			if (modulus == 1)
 			{
@@ -966,18 +995,18 @@ private:
 			int hi = sz / 2;
 			int lo = sz - hi;
 
-			CRTHEAPOBJ (a0,);
-			CRTHEAPOBJ (a1,);
+			CRTHEAPOBJNP (a0);
+			CRTHEAPOBJNP (a1);
 			(*a0).integer.copy (isz - hi, &x.integer[isz - sz], hi);
 			(*a1).integer.copy (isz - lo, &x.integer[isz - lo], lo);
-			CRTHEAPOBJ (b0,);
-			CRTHEAPOBJ (b1,);
+			CRTHEAPOBJNP (b0);
+			CRTHEAPOBJNP (b1);
 			(*b0).integer.copy (isz - hi, &y.integer[isz - sz], hi);
 			(*b1).integer.copy (isz - lo, &y.integer[isz - lo], lo);
 
-			CRTHEAPOBJ (c0,);
-			CRTHEAPOBJ (c1,);
-			CRTHEAPOBJ (c2,);
+			CRTHEAPOBJNP (c0);
+			CRTHEAPOBJNP (c1);
+			CRTHEAPOBJNP (c2);
 			*c0 = Karatsuba (*a0, *b0); //sz / 2 + sz % 2);
 			*c1 = Karatsuba (*a1, *b1); //sz / 2 + sz % 2);
 			*c2 = Karatsuba (*a0 + *a1, *b0 + *b1) - (*c0 + *c1);
@@ -1022,7 +1051,7 @@ private:
 			// -a + v = v - a negative
 			if (is_negative != v.is_negative)
 			{
-				CRTHEAPOBJ (tmp, );
+				CRTHEAPOBJNP (tmp);
 				*tmp = is_negative ? v : *this;
 				CRTHEAPOBJ (tmp2, is_negative ? *this : v);
 				(*tmp2).is_negative = false;
@@ -1047,11 +1076,11 @@ private:
 		{
 			return *this - bdig(v);
 		}
-		bool isnegative () const 
+		bool isnegative () const
 		{
 			return is_negative;
 		}
-		bdig& operator -() 
+		bdig& operator -()
 		{
 			is_negative = !is_negative;
 			return *this;
@@ -1105,9 +1134,9 @@ private:
 					}
 				}
 			}
-			else 
+			else
 			{
-				*this += v;
+				*this += -v;
 			}
 			return *this;
 		}
@@ -1260,25 +1289,30 @@ private:
 				is_negative = true;
 
 						 // if char
-				typedef typename conditional < is_same<Ti, char>::value, 
-									unsigned char,
-						// else if short
-				typename conditional < is_same<Ti, short>::value, 
-									unsigned short,
-						// else if int
-				typename conditional < is_same<Ti, int>::value, 
-									unsigned int,
-						// else if long
-				typename conditional < is_same<Ti, long>::value, 
-									unsigned long,
-						// else if long long
-				typename conditional < is_same<Ti, long long>::value, 
-									unsigned long long, void
-									 >::type 
-									 >::type 
-									 >::type 
-									 >::type 
-									 >::type uTi;
+			typedef typename conditional < is_same<Ti, char>::value, 
+								unsigned char,
+					// else if short
+			typename conditional < is_same<Ti, short>::value, 
+								unsigned short,
+					// else if int
+			typename conditional < is_same<Ti, int>::value, 
+								unsigned int,
+					// else if long
+			typename conditional < is_same<Ti, long>::value, 
+								unsigned long,
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+					// else if long long
+			typename conditional < is_same<Ti, long long>::value, 
+									unsigned long long, 
+#endif
+			void
+			>::type 
+			>::type 
+			>::type 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+				>::type
+#endif
+			>::type uTi;
 
 			uTi uv = static_cast<uTi> (v < 0 ? -v : v);
 			return *this = uv;
@@ -1352,15 +1386,30 @@ private:
 		}
 		operator std::string ()
 		{
-			std::string str(digits + prec + std::numeric_limits <long long>::digits10 + 2, 0);
+			std::string str(digits + prec + std::numeric_limits <
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+			long long
+#else
+			long
+#endif			
+			>::digits10 + 2, 0);
 			str = "";
 			bdig tmp = *this; 
 			tmp.abs();
 			bdig tmp10 = 10;
-			std::size_t d10 = std::numeric_limits <long long>::digits10;
+			std::size_t d10 = std::numeric_limits <
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+			long long
+#else
+			long
+#endif			
+			>::digits10;
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
 			if (isz * sizeof(T) >= sizeof (long long))
 				d10 = std::numeric_limits <long long>::digits10;
-			else if (isz * sizeof(T) >= sizeof (long))
+			else
+#endif			 
+			if (isz * sizeof(T) >= sizeof (long))
 				d10 = std::numeric_limits <long>::digits10;
 			else if (isz * sizeof(T) >= sizeof (int))
 				d10 = std::numeric_limits <int>::digits10;
@@ -1377,12 +1426,13 @@ private:
 			{
 				bdig remainder;
 				tmp = tmp.div(tmp10, &remainder);
-				unsigned long long c = remainder._toll<unsigned long long>();
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+				unsigned long long c = remainder._toll<unsigned long long>();
 				std::string d = std::to_string(c);
 #else
+				unsigned long c = remainder._toll<unsigned long>();
 				std::string d(d10 + 1,0);
-				sprintf(&d[0], "%llu", c);
+				sprintf(&d[0], "%lu", c);
 				d = d.data();
 #endif
 				std::size_t dl = d.length();
