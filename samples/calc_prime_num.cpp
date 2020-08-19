@@ -10,8 +10,8 @@ unsigned PrimeNumbers[] = {
 379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,
 523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,
 677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839,853,
-857,859,863,877,881,883,887,907,911,919,929,937,941,947,953,967,971,977,983,991,997,1009,1013,1019,
-1021,1031,1033,1039,1049,1051,1061,1063,1069,1087,1091,1093,1097,1103,1109,1117,1123,1129,1151,1153
+857,859,863,877,881,883,887,907,911,919,929,937,941,947,953,967,971,977,983,991,997,1009,1013,1019
+// 1021,1031,1033,1039,1049,1051,1061,1063,1069,1087,1091,1093,1097,1103,1109,1117,1123,1129,1151,1153,
 // 1163,1171,1181,1187,1193,1201,1213,1217,1223,1229,1231,1237,1249,1259,1277,1279,1283,1289,1291,1297,
 // 1301,1303,1307,1319,1321,1327,1361,1367,1373,1381,1399,1409,1423,1427,1429,1433,1439,1447,1451,1453,
 // 1459,1471,1481,1483,1487,1489,1493,1499,1511,1523,1531,1543,1549,1553,1559,1567,1571,1579,1583,1597,
@@ -39,18 +39,20 @@ unsigned PrimeNumbers[] = {
 
 int main()
 {
-    ::sag::bdig<128 * 301/1000> prime, min_prime;
+    const int digits10 = 512 * 301/1000 + 1;
+    ::sag::bdig<digits10 * 2> prime, min_prime;
     min_prime = 10;
-    min_prime.pow(min_prime.digits10-1);
+    min_prime.pow(digits10 - 1);
 
     ::std::random_device rd;
     ::std::default_random_engine e1(rd());
     unsigned long l_min = 1000000000000000000L;
     std::uniform_int_distribution<unsigned long> uniform_dist(l_min, ::std::numeric_limits<unsigned long>::max());
-    int cnt = min_prime.digits10  / (::std::numeric_limits<unsigned long>::digits10 - 1);
-    unsigned long last10 = ::std::pow(10, min_prime.digits10 % ::std::numeric_limits<unsigned long>::digits10);
+    int cnt = digits10 / (::std::numeric_limits<unsigned long>::digits10 - 1);
+    unsigned long last10 = ::std::pow(10, digits10 % ::std::numeric_limits<unsigned long>::digits10);
 
     do {
+        prime = 0;
         for (int i =0; i < cnt; ++i)
         {
             unsigned long mean = uniform_dist(e1);
@@ -76,13 +78,11 @@ int main()
           if (prime.fermatest(3))
             break;
         }
-
-        //::std::cout << "Number:" << (std::string)prime << ::std::endl;
+        //::std::cout << "Non prime number:" << (std::string)prime << ::std::endl;
     }
-    //while (!prime.LucasLehmer(3));
     while (true);
 
-    ::std::cout << "Number:" << (std::string)prime << ::std::endl;
+    ::std::cout << "Possible prime number:" << (std::string)prime << ::std::endl;
 
     //int i;
     //::std::cout << "Input integer:";

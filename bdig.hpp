@@ -5,7 +5,7 @@
 	Author: Andrey Svyatovets
 */
 
-#include <limits> 
+#include <limits>
 #include <string>
 #include <memory>
 #include <algorithm>
@@ -14,7 +14,7 @@
 
 namespace sag
 {
-	const char* pPI_1000 = 
+	const char* pPI_1000 =
 				"3.14159265358979323846264338327950288419716939937510"
 				"58209749445923078164062862089986280348253421170679"
 				"82148086513282306647093844609550582231725359408128"
@@ -57,7 +57,7 @@ namespace sag
 		"76839642437814059271456354906130310720851038375051"
 		"01157477041718986106873969655212671546889570350354";
 
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 	using namespace std;
 #else // C++98
 	template<bool B, class T = void> struct enable_if {};
@@ -81,7 +81,7 @@ namespace sag
 	};
 
 	/* Allocation objects in heap for functions with deep recursion   */
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 	#define DECLOBJ(name) std::unique_ptr<bdig> name
 	#define ASSIGNOBJ(name,param) name.reset(new bdig(param)) //name = std::make_unique<bdig>(param)
 	#define CRTHEAPOBJ(name,param) DECLOBJ(name) = std::unique_ptr<bdig> (new bdig(param)) //DECLOBJ(name) = std::make_unique<bdig>(param)
@@ -106,18 +106,18 @@ namespace sag
 			{
 				clear();
 			}
-			void clear () 
-			{	
-				memset (_buffer, 0, size * sizeof(Tb));	
+			void clear ()
+			{
+				memset (_buffer, 0, size * sizeof(Tb));
 				least_significant_index = size - 1;
 			}
 			const T& operator [](const unsigned idx) const
 			{
 				if (idx < size)
 					return _buffer[idx];
-				return _buffer[0]; // 
+				return _buffer[0]; //
 			}
-			inline void set (const unsigned idx, const Tb _v) 
+			inline void set (const unsigned idx, const Tb _v)
 			{
 				if (idx < size)
 				{
@@ -133,7 +133,7 @@ namespace sag
 				for (int i = 0; i < sz; i++)
 					set (to_idx++ , from[i]);
 			}
-			inline unsigned int get_lsi() const 
+			inline unsigned int get_lsi() const
 			{
 				return least_significant_index;
 			}
@@ -156,7 +156,7 @@ namespace sag
 			int move_size = isz - integer.get_lsi();
 			for ( int i = 0; i < move_size; i++, idx_dst++, idx_src++)
 				integer.set(idx_dst, integer[idx_src]);
-			
+
 			for (int i = 0, idx_set = (isz - bytes); i < bytes; i++, idx_set++)
 				integer.set(idx_set, 0);
 		}
@@ -181,7 +181,7 @@ namespace sag
 			T set_bit = 0;
 			for (int i = isz - 1; i >= msi; i--)
 			{
-				set_bit = shl_sop (i, bits, set_bit); 
+				set_bit = shl_sop (i, bits, set_bit);
 			}
 		}
 		void shrb (const int bytes)
@@ -195,7 +195,7 @@ namespace sag
 		{
 			if (!integer[idx] && !set_bit)
 				return 0;
-			T bit = integer[idx] << (std::numeric_limits<T>::digits - bits); 
+			T bit = integer[idx] << (std::numeric_limits<T>::digits - bits);
 			integer.set (idx, integer[idx] >> bits);
 			if (set_bit)
 				integer.set(idx, integer[idx] | set_bit);
@@ -217,23 +217,23 @@ namespace sag
 		{
 			return integer.get_lsi();
 		}
-		template <class Ti> int most_significant_bit(Ti value, typename enable_if< 
+		template <class Ti> int most_significant_bit(Ti value, typename enable_if<
 			   is_same<Ti, unsigned short>::value
-			|| is_same<Ti, unsigned long>::value 
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+			|| is_same<Ti, unsigned long>::value
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 			|| is_same<Ti, unsigned long long>::value
-#endif 
+#endif
 			, Ti>::type = 0) const
 		{
-			typedef typename conditional < is_same<Ti, unsigned short>::value, unsigned char, 
-					typename conditional < is_same<Ti, unsigned long>::value, unsigned short, 
+			typedef typename conditional < is_same<Ti, unsigned short>::value, unsigned char,
+					typename conditional < is_same<Ti, unsigned long>::value, unsigned short,
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+					typename conditional < is_same<Ti, unsigned long long>::value, unsigned long,
+#endif
+					void >::type
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
-					typename conditional < is_same<Ti, unsigned long long>::value, unsigned long,   
-#endif					
-					void >::type 
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
-					>::type 
-#endif					
+					>::type
+#endif
 					>::type subT;
 			if ( value & (Ti)std::numeric_limits<subT>::max() << std::numeric_limits<subT>::digits)
 				return most_significant_bit((subT)(value >> std::numeric_limits<subT>::digits)) + std::numeric_limits<subT>::digits;
@@ -427,13 +427,13 @@ namespace sag
 				{
 					if ((*divisor).integer[ri])
 					{
-						int d_msb = most_significant_bit((*divisor).integer[ri]); 
+						int d_msb = most_significant_bit((*divisor).integer[ri]);
 						(*divisor).shr(d_msb + 1);
 						(*shift).shr(d_msb + 1);
 					}
 					ri++;
 				}
-				int d_msb = most_significant_bit((*divisor).integer[ri]); 
+				int d_msb = most_significant_bit((*divisor).integer[ri]);
 				int r_msb = most_significant_bit((*remainder).integer[ri]);
 				int bits = r_msb - d_msb;
 
@@ -707,7 +707,7 @@ private:
 				*p_integer -= 1;
 			}
 			bool cr = (*p_integer < *p_v_integer) || c2;
-			*p_integer -= *p_v_integer; 
+			*p_integer -= *p_v_integer;
 			return cr;
 		}
 
@@ -721,9 +721,9 @@ private:
 		{
 			is_negative = false;
 		}
-		template <class Ti> 
+		template <class Ti>
 		bdig (Ti v, typename enable_if<std::numeric_limits<Ti>::is_integer && !std::numeric_limits<T>::is_signed, Ti>::type = 0)
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 			: bdig()
 		{
 #else
@@ -733,7 +733,7 @@ private:
 #endif
 				*this = v;
 		}
-		template <class Ti> 
+		template <class Ti>
 		bdig (const Ti *v,
 			typename enable_if < (is_same < unsigned char, Ti >::value ||
 			is_same < char, Ti >::value ||
@@ -920,7 +920,7 @@ private:
 					return false;
 			return true;
 		}
-		bdig modular_pow(const bdig& base, const bdig& exponent, const bdig& modulus)
+		bdig modular_pow(const bdig& base, const bdig& exponent, const bdig& modulus) const
 		{
 			if (modulus == 1)
 				return 0;
@@ -929,29 +929,29 @@ private:
 				c = (c * base) % modulus;
 			return c;
 		}
-		bdig& modular_pow2(bdig base, bdig exponent, const bdig modulus)
+		bdig modular_pow2(bdig base, bdig exponent, const bdig modulus) const
 		{
+			CRTHEAPOBJ(v, *this);
 			if (modulus == 1)
 			{
-				this->integer.clear();
-				return *this;
+				return 0;
 			}
-			*this = 1;
+			*v = 1;
 			base %= modulus;
 			while ( !(!exponent) )
 			{
 				if (exponent.integer[isz -1] & 1)
 				{
-					*this *= base;
-					*this %= modulus;
+					*v *= base;
+					*v %= modulus;
 				}
 				exponent >>= 1;
 				base *= base;
 				base %= modulus;
 			}
-			return *this;
+			return *v;
 		}
-		bool fermatest (const int iterations = 10)
+		bool fermatest (const int iterations = 10) const
 		{
 			if (*this < iterations)
 			{
@@ -971,7 +971,7 @@ private:
 			}
 			return true;
 		}
-		bool LucasLehmer (int p)
+		bool LucasLehmer (int p) const
 		{
 			CRTHEAPOBJ (S, 4);
 			CRTHEAPOBJ (two, 2);
@@ -1289,27 +1289,27 @@ private:
 				is_negative = true;
 
 						 // if char
-			typedef typename conditional < is_same<Ti, char>::value, 
+			typedef typename conditional < is_same<Ti, char>::value,
 								unsigned char,
 					// else if short
-			typename conditional < is_same<Ti, short>::value, 
+			typename conditional < is_same<Ti, short>::value,
 								unsigned short,
 					// else if int
-			typename conditional < is_same<Ti, int>::value, 
+			typename conditional < is_same<Ti, int>::value,
 								unsigned int,
 					// else if long
-			typename conditional < is_same<Ti, long>::value, 
+			typename conditional < is_same<Ti, long>::value,
 								unsigned long,
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 					// else if long long
-			typename conditional < is_same<Ti, long long>::value, 
-									unsigned long long, 
+			typename conditional < is_same<Ti, long long>::value,
+									unsigned long long,
 #endif
 			void
-			>::type 
-			>::type 
-			>::type 
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+			>::type
+			>::type
+			>::type
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 				>::type
 #endif
 			>::type uTi;
@@ -1387,28 +1387,28 @@ private:
 		operator std::string ()
 		{
 			std::string str(digits + prec + std::numeric_limits <
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 			long long
 #else
 			long
-#endif			
+#endif
 			>::digits10 + 2, 0);
 			str = "";
-			bdig tmp = *this; 
+			bdig tmp = *this;
 			tmp.abs();
 			bdig tmp10 = 10;
 			std::size_t d10 = std::numeric_limits <
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 			long long
 #else
 			long
-#endif			
+#endif
 			>::digits10;
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
 			if (isz * sizeof(T) >= sizeof (long long))
 				d10 = std::numeric_limits <long long>::digits10;
 			else
-#endif			 
+#endif
 			if (isz * sizeof(T) >= sizeof (long))
 				d10 = std::numeric_limits <long>::digits10;
 			else if (isz * sizeof(T) >= sizeof (int))
@@ -1426,7 +1426,7 @@ private:
 			{
 				bdig remainder;
 				tmp = tmp.div(tmp10, &remainder);
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 				unsigned long long c = remainder._toll<unsigned long long>();
 				std::string d = std::to_string(c);
 #else
@@ -1569,9 +1569,8 @@ private:
 		{
 			return (bdig(v1) / v2);
 		}
-		
+
 	};
 
 	template <const int isz, const int prec, class T> bdig<isz, prec, T> bdig<isz, prec, T>::i10;
 }
-
