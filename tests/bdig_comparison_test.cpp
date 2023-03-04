@@ -45,7 +45,7 @@ TEST(BDigTest, CompareDigits) {
 }
 
 // Test addition of digits
-TEST(BDigTest, AdditionSubstructionDigits) {
+TEST(BDigTest, AdditionSubtractionDigits) {
   ::sag::bdig<> value1;
   ::sag::bdig<> value2;
   value1 = 1;
