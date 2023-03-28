@@ -1,7 +1,8 @@
 include(FetchContent)
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/b796f7d44681514f58a683a3a71ff17c94edb0c1.zip
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        b796f7d44681514f58a683a3a71ff17c94edb0c1
 )
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -10,8 +11,8 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(bdig_comparison_test bdig_tests.cpp)
-target_link_libraries(bdig_comparison_test GTest::gtest_main gcov)
+add_executable(bdig_tests bdig_tests.cpp)
+target_link_libraries(bdig_tests GTest::gtest_main)
 
 include(GoogleTest)
-gtest_discover_tests(bdig_comparison_test)
+gtest_discover_tests(bdig_tests)
