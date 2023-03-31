@@ -56,6 +56,14 @@ const char* pE_1000 = "2.71828182845904523536028747135266249775724709369995"
 
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 using namespace std;
+
+#define QUOTE(x) #x
+#define STR(x) QUOTE(x)
+#define PREC_FOR_MATH_FUNC 5
+#define PREC_FOR_MATH_FUNC_TEXT "The precision should be more then " STR(PREC_FOR_MATH_FUNC) " digits"
+#define SIZE_FOR_MATH_FUNC 1000
+#define SIZE_FOR_MATH_FUNC_TEXT "The size should be more then " STR(SIZE_FOR_MATH_FUNC) " digits"
+#define FOR_INTEGER_ONLY_TEXT "This function only for integer digits without precision"
 #else // C++98
 template<bool B, class T = void>
 struct enable_if { };
@@ -520,7 +528,6 @@ class bdig {
         return i10;
     }
 
-private:
     bdig& prec_up()
     {
         if (prec) {
@@ -604,8 +611,9 @@ private:
             }
         }
         bool store_is_negative = is_negative;
+        bool store_is_negative_v = v.is_negative;
         *this = result;
-        is_negative = store_is_negative != v.is_negative;
+        is_negative = store_is_negative != store_is_negative_v;
         return *this;
     }
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
@@ -661,15 +669,16 @@ private:
         unsigned start = v1.integer.get_lsi() < v2.integer.get_lsi() ? v1.integer.get_lsi()
                                                                      : v2.integer.get_lsi();
         int res = 0;
-        bool zero = false;
+        bool zero = true;
         for (unsigned i = start; i < isz; ++i) {
             res = (int)(v1.integer[i] < v2.integer[i]    ? -1
                   : v1.integer[i] == v2.integer[i] ? 0
                                                    : 1);
+            if (v1.integer[i] || v2.integer[i])
+                zero = false;
+
             if (res)
                 break;
-
-            zero = v1.integer[i] == 0 && v2.integer[i] == 0 ? true : false;
         }
 
         if (v1.is_negative != v2.is_negative)
@@ -733,6 +742,33 @@ private:
         *p_integer -= *p_v_integer;
         return cr;
     }
+    bdig& _pow(const int _s, bool with_prec = true)
+    {
+        if (_s == 1)
+            return *this;
+        if (_s == 0) {
+            if (with_prec)
+                *this = 1;
+            else
+                integer.set(isz - 1, 1);
+            return *this;
+        }
+        if (_s == 2) {
+            mul<T>(*this);
+            if (with_prec)
+                prec_down();
+            return *this;
+        }
+        CRTHEAPOBJ(result, *this);
+        int v = (_s < 0 ? -_s : _s);
+        _pow(v / 2, with_prec)._pow(2, with_prec);
+        if (v % 2) {
+            mul<T>(*result);
+            if (with_prec)
+                prec_down();
+        }
+        return *this;
+    }
 
 public:
     const static int digits10 = digits + prec;
@@ -777,7 +813,7 @@ public:
         // memset (integer, 0, sizeof (integer));
         is_negative = false;
 #endif
-                * this = v;
+        *this = v;
 }
 
 ////////////////////////////////////
@@ -788,36 +824,26 @@ abs()
     is_negative = false;
     return *this;
 }
-
 bdig& pow(const int _s, bool with_prec = true)
 {
-    if (_s == 1)
-        return *this;
-    if (_s == 0) {
-        if (with_prec)
-            *this = 1;
-        else
-            integer.set(isz - 1, 1);
-        return *this;
-    }
-    if (_s == 2) {
-        mul<T>(*this);
-        if (with_prec)
-            prec_down();
-        return *this;
-    }
-    CRTHEAPOBJ(result, *this);
-    pow(_s / 2, with_prec).pow(2, with_prec);
-    if (_s % 2) {
-        mul<T>(*result);
-        if (with_prec)
-            prec_down();
+    _pow(_s, with_prec);
+    if (_s < 0) {
+        // dividing by zero
+        if (*this == 0) {
+            return *this;
+        }
+
+        bdig one; one = 1;
+        *this = one.prec_up().div(*this);
     }
     return *this;
 }
-
-bdig sqrt()
+bdig sqrt() const
 {
+    // Invalid value for sqrt
+    if (is_negative)
+        return 0;
+
     bdig res;
     bdig v = *this;
     v = v.prec_up();
@@ -838,23 +864,17 @@ bdig sqrt()
     }
     return res;
 }
-bdig sin(int a, const int iterations = 140)
+bdig sin(int a, const int iterations = 140) const
 {
-    bdig bPI = pPI_1000;
-    bdig x = a > 180 ? a % 180 : a;
-
-    x *= bPI / 180;
-    bdig t = x;
-    bdig sum = x;
-
-    for (int i = 1; i <= iterations; i++) {
-        t = -t * x * x / (2 * i * (2 * i + 1));
-        sum += t;
-    }
-    return ((a / 180 % 2) ? -sum : sum);
+    if (!(a % 180)) return 0;
+    return -cos(a + 90, iterations);
 }
-bdig cos(int a, const int iterations = 140)
+bdig cos(int a, const int iterations = 140) const
 {
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    static_assert(prec >= PREC_FOR_MATH_FUNC, PREC_FOR_MATH_FUNC_TEXT);
+#endif
+    if (a == 180) return -1;
     bdig bPI = pPI_1000;
     bdig x = a > 180 ? a % 180 : a;
 
@@ -868,8 +888,10 @@ bdig cos(int a, const int iterations = 140)
     }
     return ((a / 180 % 2) ? -sum : sum);
 }
-bdig log2(const bdig& n, const int iterations = 100)
+bdig log2(const bdig& n, const int iterations = 100) const
 {
+    // Invalid value
+    if (n <= 0) return 0;
     bdig result = 0, x = n, one = 1, two = 2;
     bdig b = "0.5";
     do {
@@ -893,16 +915,20 @@ bdig log2(const bdig& n, const int iterations = 100)
     }
     return result;
 }
-bdig log(const bdig& a, const bdig& b, const int iterations = 100)
+bdig log(const bdig& a, const bdig& b, const int iterations = 100) const
 {
     return log2(a, iterations) / log2(b, iterations);
 }
-bdig ln(const bdig& a, const int iterations = 100)
+bdig ln(const bdig& a, const int iterations = 100) const
 {
     return log2(a, iterations) / log2(pE_1000, iterations);
 }
-bdig exp(const bdig& x, const int iterations = prec * 2)
+bdig exp(const bdig& x, const int iterations = prec * 2) const
 {
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    static_assert(digits >= SIZE_FOR_MATH_FUNC, SIZE_FOR_MATH_FUNC_TEXT);
+#endif
+
     bdig result = 1, b = 1, d = 1, prev = 1;
     for (int i = 1; i < iterations; i++) {
         d *= i;
@@ -914,7 +940,7 @@ bdig exp(const bdig& x, const int iterations = prec * 2)
     }
     return result;
 }
-bdig powe(const bdig& x, const bdig& y, const int iterations = 100)
+bdig powe(const bdig& x, const bdig& y, const int iterations = 100) const
 {
     if (y == 0) {
         bdig tmp = 1;
@@ -930,8 +956,15 @@ bdig powe(const bdig& x, const bdig& y, const int iterations = 100)
     }
     return exp(y * ln(x, iterations));
 }
-bool is_prime()
+bool is_prime() const
 {
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    static_assert(prec == 0, FOR_INTEGER_ONLY_TEXT);
+#endif
+
+    if (*this == 1 || *this == 2)
+        return true;
+
     bdig max = sqrt() + 1;
     for (bdig i = 2; i <= max; i += 1)
         if (*this % i == 0)
@@ -968,9 +1001,13 @@ bdig modular_pow2(bdig base, bdig exponent, const bdig modulus) const
 }
 bool fermatest(const int iterations = 10) const
 {
-    if (*this < iterations) {
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    static_assert(prec == 0, FOR_INTEGER_ONLY_TEXT);
+#endif
+    if (*this <= 11) {
         return (
             *this == 1        ? true
+                : *this == 2  ? true
                 : *this == 3  ? true
                 : *this == 5  ? true
                 : *this == 7  ? true
@@ -986,19 +1023,32 @@ bool fermatest(const int iterations = 10) const
     }
     return true;
 }
-bool LucasLehmer(int p) const
+bool LucasLehmer(int p)
 {
-    CRTHEAPOBJ(S, 4);
+    if (p == 1 || p == 2)
+        return true;
+
+    *this = 2;
+    *this = pow(p) - 1;
+    CRTHEAPOBJ(S, 2);
+    {
+        CRTHEAPOBJ(S1, 4);
+        *S = *S1 % *this;
+    }
     CRTHEAPOBJ(two, 2);
     int k = 1;
-    while (k != p - 1) {
+    while (k < p - 1) {
         *S = ((*S * *S) - *two) % *this;
         k++;
     }
     return (!*S);
 }
-bdig Karatsuba(const bdig& x, const bdig& y)
+bdig Karatsuba(const bdig& x, const bdig& y) const
 {
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    static_assert(prec == 0, FOR_INTEGER_ONLY_TEXT);
+#endif
+
     int sz_x = isz - x.most_significant_index();
     int sz_y = isz - y.most_significant_index();
     int sz = std::max(sz_x, sz_y);
@@ -1213,7 +1263,7 @@ bdig& operator>>=(int b)
     shr(b % std::numeric_limits<T>::digits);
     return *this;
 }
-bdig operator>>(int b)
+bdig operator>>(int b) const
 {
     bdig tmp = *this;
     tmp >>= b;
@@ -1225,7 +1275,7 @@ bdig& operator<<=(const int b)
     shl(b % std::numeric_limits<T>::digits);
     return *this;
 }
-bdig operator<<(const int b)
+bdig operator<<(const int b) const
 {
     bdig tmp = *this;
     tmp <<= b;
@@ -1496,9 +1546,10 @@ int get_bit(int number)
     return ((integer[pos] & mask) ? 1 : 0);
 }
 
+#ifdef TEST_SUPPORT_FUNC
 ////////////////////////////////////
-// Test
-/*
+// Test support fuction
+
 int contains_digits ()
 {
 int msd = most_significant_index();
@@ -1574,7 +1625,7 @@ std::endl;
         //cout << " pos:" << (std::streamoff)in.tellg() << endl;
 }
 }
-*/
+#endif
 
 template<class Ti>
 friend typename sag::enable_if<
