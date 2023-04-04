@@ -1658,7 +1658,7 @@ operator/(const Ti v1, bdig& v2)
     return (bdig(v1) / v2);
 }
 
-}; // namespace sag
+}; //  namespace sag
 
 template<const int isz, const int prec, class T>
 bdig<isz, prec, T> bdig<isz, prec, T>::i10;
