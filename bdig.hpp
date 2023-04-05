@@ -2,7 +2,7 @@
         Template class of big numbers with fixed point arithmetic for
    simplifying usage of big numbers. Usage from C++98.
 
-        Author: Andrey Svyatovets
+   Author: Andrey Svyatovets
 */
 
 #include <algorithm>
