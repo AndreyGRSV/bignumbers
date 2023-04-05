@@ -1,4 +1,4 @@
-name: CMake
+name: CMake, Upload coverage reports to Codecov
 
 on:
   push:
@@ -24,8 +24,8 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        files:  lcov.xml
         verbose: true
+        fail_ci_if_error: true
         
     - name: Configure CMake    
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
