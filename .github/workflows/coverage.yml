@@ -33,8 +33,8 @@ jobs:
       run: ./bdig_tests
 
     - name: Coverage
+      shell: bash
       working-directory: ${{runner.workspace}}/build
-      # run: make coverage
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_COVERAGE_INFO=true
         
     - name: Upload coverage reports to Codecov
