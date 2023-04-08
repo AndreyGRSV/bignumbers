@@ -11,7 +11,12 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(bdig_tests bdig_tests.cpp)
-target_link_libraries(bdig_tests GTest::gtest_main)
+
+if (BUILD_COVERAGE_INFO)
+  target_link_libraries(bdig_tests GTest::gtest_main gcov)
+else()
+  target_link_libraries(bdig_tests GTest::gtest_main)
+endif()
 
 include(GoogleTest)
 gtest_discover_tests(bdig_tests)
