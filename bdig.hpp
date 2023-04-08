@@ -1618,9 +1618,9 @@ try
 }
 catch (std::ios_base::failure f)
 {
-        std::cout << "Caught an exception: " << f.what() << "
-char_type:" << sizeof (std::ifstream::char_type) << std::endl; std::cout << "
-offset:" << (int)(isz * sizeof(T) / sizeof (std::ifstream::char_type)) <<
+        std::cout << "Caught an exception: " << f.what()
+        << "char_type:" << sizeof (std::ifstream::char_type) << std::endl; std::cout
+        << "offset:" << (int)(isz * sizeof(T) / sizeof (std::ifstream::char_type)) <<
 std::endl;
         //cout << " pos:" << (std::streamoff)in.tellg() << endl;
 }
