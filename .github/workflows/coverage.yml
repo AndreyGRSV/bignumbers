@@ -1,4 +1,4 @@
-name: CMake, Upload coverage reports to Codecov
+name: Upload coverage reports to Codecov
 
 on:
   push:
@@ -34,7 +34,8 @@ jobs:
 
     - name: Coverage
       working-directory: ${{runner.workspace}}/build
-      run: make coverage
+      # run: make coverage
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_COVERAGE_INFO=true
         
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
