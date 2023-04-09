@@ -44,7 +44,7 @@ jobs:
         
     - name: Upload coverage reports to Codasy
       uses: codacy/codacy-coverage-reporter-action@v1
+      env:
+         CODECOV_TOKEN: ${{secrets.CODACY_PROJECT_TOKEN}}
       with:
-        #token: ${{secrets.CODACY_PROJECT_TOKEN}}
-        project-token: ${{secrets.CODACY_PROJECT_TOKEN}}
-        api-token: ${{secrets.CODACY_API_TOKEN}}
+        token: ${{secrets.CODACY_PROJECT_TOKEN}}
