@@ -45,4 +45,4 @@ jobs:
     - name: Upload coverage reports to Codasy
       env:
          CODECOV_TOKEN: ${{secrets.CODACY_PROJECT_TOKEN}}      
-      run: bash <(curl -Ls https://coverage.codacy.com/get.sh)
+      run: bash <(curl -Ls https://coverage.codacy.com/get.sh) --project-token ${{secrets.CODACY_PROJECT_TOKEN}}
