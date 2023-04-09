@@ -202,7 +202,7 @@ public:
         num = szValue;
         auto got = callFunc(num, func);
 
-        std::cout << szValue << ":\t" << iParam << " " << szValue << "\t" << got << "\t" << wantResult << std::endl;
+        // std::cout << szValue << ":\t" << iParam << " " << szValue << "\t" << got << "\t" << wantResult << std::endl;
         EXPECT_EQ(got, wantResult);
     }
 };

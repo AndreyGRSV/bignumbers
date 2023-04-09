@@ -28,7 +28,7 @@ else()
 
             add_custom_target(coverage
             # gather data
-            COMMAND ${LCOV} --directory . --capture --exclude '*/src/*' --exclude '/usr/include/*' --exclude '*/gtest/*' --output-file coverage.info
+            COMMAND ${LCOV} --directory . --capture --exclude '*/src/*' --exclude '/usr/include/*' --exclude '*/gtest/*' --exclude '*/tests/*' --output-file coverage.info
             # generate report
             COMMAND ${GENHTML} --demangle-cpp -o coverage coverage.info
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
