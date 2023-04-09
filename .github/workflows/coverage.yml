@@ -48,3 +48,4 @@ jobs:
          CODECOV_TOKEN: ${{secrets.CODACY_PROJECT_TOKEN}}
       with:
         token: ${{secrets.CODACY_PROJECT_TOKEN}}
+        project-token: ${{secrets.CODACY_PROJECT_TOKEN}}
