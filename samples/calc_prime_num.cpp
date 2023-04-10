@@ -4,7 +4,8 @@
 #include <random>
 
 unsigned PrimeNumbers[] = {
-    2,   3,   5,   7,    11,   13,  17,  19,  23,  29,  31,  37,  41,  43,  47,
+    // 2,
+    3,   5,   7,    11,   13,  17,  19,  23,  29,  31,  37,  41,  43,  47,
     53,  59,  61,  67,   71,   73,  79,  83,  89,  97,  101, 103, 107, 109, 113,
     127, 131, 137, 139,  149,  151, 157, 163, 167, 173, 179, 181, 191, 193, 197,
     199, 211, 223, 227,  229,  233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
@@ -43,10 +44,11 @@ unsigned PrimeNumbers[] = {
 };
 
 int main() {
-  const int digits10 = 512 * 301 / 1000 + 1;
+  const int bits = 4096;
+  const int digits10 = bits * 301 / 1000 + 1;
   ::sag::bdig<digits10 * 2> prime, min_prime;
-  min_prime = 10;
-  min_prime.pow(digits10 - 1);
+  // min_prime = 10;
+  // min_prime.pow(digits10 - 1);
 
   ::std::random_device rd;
   ::std::default_random_engine e1(rd());
@@ -57,21 +59,40 @@ int main() {
   unsigned long last10 =
       ::std::pow(10, digits10 % ::std::numeric_limits<unsigned long>::digits10);
 
-  do {
-    prime = 0;
-    for (int i = 0; i < cnt; ++i) {
-      unsigned long mean = uniform_dist(e1);
-      if (i + 1 == cnt)
-        mean %= last10;
-      prime += mean;
+  prime = 2;
+  prime = prime.pow(bits) - 1;
+  prime *= uniform_dist(e1);
+  prime /= last10;
+  std::string s = prime;
+  // std::cout << "Start from:" << (std::string)prime << std::endl;
+  std::reverse(s.begin(), s.end());
+  //std::cout << "Start from:" << s << std::endl;
+  // s[s.length()-1] = '9';
+  // s[s.length()-2] = '6';
+  // s[s.length()-3] = '2';
+  prime = s.c_str();
+  prime.set_bit(0);
+  std::cout << "Start from:" << (std::string)prime << std::endl;
 
-      if (i + 2 == cnt)
-        prime *= last10;
-      else if (i < cnt - 2)
-        prime *= l_min;
-      //::std::cout << "Number:" << (std::string)prime << ::std::endl;
-    }
-    prime.set_bit(0);
+  //            13407807929942597099574024998205846127479365820592393377723561443723611107892781435962874298166903427690031858186486050853753882811946587785592356591200339
+  // min_prime *= "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+  // min_prime += uniform_dist(e1);
+
+  // prime += min_prime;
+  do {
+    // for (int i = 0; i < cnt; ++i) {
+    //   unsigned long mean = uniform_dist(e1);
+    //   if (i + 1 == cnt)
+    //     mean %= last10;
+    //   prime += mean;
+
+    //   if (i + 2 == cnt)
+    //     prime *= last10;
+    //   else if (i < cnt - 2)
+    //     prime *= l_min;
+    //   //::std::cout << "Number:" << (std::string)prime << ::std::endl;
+    // }
+    // prime.set_bit(0);
     bool pr = true;
     for (int i = 0; i < sizeof(PrimeNumbers) / sizeof(unsigned); ++i) {
       if (!(prime % PrimeNumbers[i])) {
@@ -79,11 +100,21 @@ int main() {
         break;
       }
     }
+
+    // for (int i = 3; i < 50; i += 2) {
+    //   if (!(prime % i)) {
+    //     pr = false;
+    //     break;
+    //   }
+    // }
     if (pr) {
-      if (prime.fermatest(3))
+      if (prime.fermatest(3)) {
+        std::cout << "------------------ prime.fermatest(3) ----------------------" << std::endl;
         break;
+      }
     }
     //::std::cout << "Non prime number:" << (std::string)prime << ::std::endl;
+    prime += 2;
   } while (true);
 
   ::std::cout << "Possible prime number:" << (std::string)prime << ::std::endl;
