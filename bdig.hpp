@@ -1328,7 +1328,7 @@ bdig &operator=(const char *pstr) {
   }
   return *this;
 }
-operator std::string() {
+operator std::string() const {
   std::string str(digits + prec +
                       std::numeric_limits<
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
@@ -1409,7 +1409,7 @@ void set_bit(int number) {
   T mask = ((T)1 << (number % std::numeric_limits<T>::digits));
   integer.set(pos, integer[pos] | mask);
 }
-int get_bit(int number) {
+int get_bit(int number) const {
   int pos = isz - (number / std::numeric_limits<T>::digits) - 1;
   T mask = ((T)1 << number % std::numeric_limits<T>::digits);
   return ((integer[pos] & mask) ? 1 : 0);
