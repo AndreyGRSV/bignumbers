@@ -1,5 +1,6 @@
-#include "../bdig.hpp"
+﻿#include "../bdig.hpp"
 #include <vector>
+#include <string>
 
 #include <gtest/gtest.h>
 
@@ -509,7 +510,7 @@ TEST(BDigTest, MathFunctionsPrime)
     using bd_type = ::sag::bdig<10000, 0>;
     bd_type value;
 
-    for (int i = 0; i < sizeof(PrimeNumbers) / sizeof(unsigned); ++i)
+    for (std::size_t i = 0; i < sizeof(PrimeNumbers) / sizeof(unsigned); ++i)
     {
         value = PrimeNumbers[i];
         // std::cout << PrimeNumbers[i] << std::endl;
@@ -518,7 +519,7 @@ TEST(BDigTest, MathFunctionsPrime)
     }
 
     unsigned NotPrimeNumbers[] = {10, 12, 60, 1000, 1200, 2245, 3302, 5000, 5001, 102345, 3456789};
-    for (int i = 0; i < sizeof(NotPrimeNumbers) / sizeof(unsigned); ++i)
+    for (std::size_t i = 0; i < sizeof(NotPrimeNumbers) / sizeof(unsigned); ++i)
     {
         value = NotPrimeNumbers[i];
         // std::cout << NotPrimeNumbers[i] << std::endl;
@@ -547,4 +548,334 @@ TEST(BDigTest, MathFunctionsPrime)
     EXPECT_EQ(value.LucasLehmer(8), false);
     EXPECT_EQ(value.LucasLehmer(9), false);
     EXPECT_EQ(value.LucasLehmer(10), false);
+}
+
+#include <random>
+
+template <class bd_type>
+class MillerRabinTest {
+
+    bd_type rangeRND (const bd_type& min, const bd_type& max) {
+        bd_type rnd = 1;
+
+        int max_range = ::std::numeric_limits<int>::max();
+        if (max < max_range)
+            max_range = ::std::stoi(max);
+
+        std::string max_str = max;
+        int bits = (max_str.length() - 1) * 1000 / 301;
+        int max_shifts = bits / ::std::numeric_limits<int>::digits + 1;
+
+        ::std::random_device rd;
+        ::std::default_random_engine eng(rd());
+        ::std::uniform_int_distribution<int> uniform_dist(1, max_range);
+        ::std::uniform_int_distribution<int> shifts_dist(0, max_shifts);
+
+        int shifts = shifts_dist(eng);
+
+        while (rnd < min || shifts > 0) {
+            if (!(!rnd)) {
+                rnd <<= ::std::numeric_limits<int>::digits;
+                shifts--;
+            }
+            auto rnd_value = uniform_dist(eng);
+            rnd += rnd_value;
+        }
+
+        while (rnd > max || rnd < min) {
+
+            if (rnd > max) {
+                //auto rnd_value = uniform_dist(eng);
+                rnd >>= 1;
+            }
+            if (rnd < min) {
+                //auto rnd_value = uniform_dist(eng);
+                rnd <<= 1;
+            }
+        }
+        return rnd;
+    };
+
+    bd_type pow_mod (bd_type& a, bd_type& x, const bd_type& n)
+    {
+        bd_type r = 1;
+
+        while (!(!x)) {
+            if (x.get_bit(0) == 1)
+                r = a * r % n;
+            x >>= 1;
+            a = a * a % n;
+        }
+        return r;
+    };
+
+public:
+    bool isprime (const bd_type& n, int iterations)
+    {
+        if (n == 2 || n == 3) return true;
+        if (n <= 1 || !n.get_bit(0)) return false;
+
+        int s = 0;
+        for (bd_type m = n - 1; !m.get_bit(0); ++s, m >>= 1)
+            ; // loop
+
+        bd_type d = (n - 1) / (1 << s);
+
+        for (int i = 0; i < iterations; ++i) {
+            bd_type a = rangeRND(2, n - 2);
+            bd_type x = pow_mod(a, d, n);
+
+            if (x == 1 || x == n - 1)
+                continue;
+
+            bd_type two = 2;
+            for (int r = 1; r <= s - 1; ++r) {
+                x = pow_mod(x, two, n);
+                if (x == 1) return false;
+                if (x == n - 1) goto LOOP;
+            }
+
+            return false;
+        LOOP:
+            continue;
+        }
+        // n is *probably* prime
+        return true;
+    };
+};
+
+TEST(BDigTest, RandomRange)
+{
+    using bd_type = ::sag::bdig<3000, 0>;
+    const bd_type max_rnd = "9'000'000'000'000'000'000'000'000'000'000'000'000'000'000'000";
+//                          "3'002'990'716'154'154'292'151'553'913'584'451'409'837'973'890"
+    const bd_type min_rnd = "1'000'000'000'000'000'000'000'000'000'000'000'000'000'000'000";
+
+
+    auto rangeRND = [](const bd_type& min, const bd_type& max) -> auto {
+        bd_type rnd = 1;
+
+        int max_range = ::std::numeric_limits<int>::max();
+        if (max < max_range)
+            max_range = ::std::stoi(max);
+
+        std::string max_str = max;
+        int bits = (max_str.length() - 1) * 1000 / 301;
+        int max_shifts = bits / ::std::numeric_limits<int>::digits + 1;
+
+        ::std::random_device rd;
+        ::std::default_random_engine eng(rd());
+        ::std::uniform_int_distribution<int> uniform_dist(1, max_range);
+        ::std::uniform_int_distribution<int> shifts_dist(0, max_shifts);
+
+        int shifts = shifts_dist(eng);
+
+        while (rnd < min || shifts > 0) {
+            if (!(!rnd)) {
+                rnd <<= ::std::numeric_limits<int>::digits;
+                shifts--;
+            }
+            auto rnd_value = uniform_dist(eng);
+            rnd += rnd_value;
+        } 
+
+        while (rnd > max || rnd < min) {
+
+            if (rnd > max) {
+                rnd >>= 1;
+            }
+            if (rnd < min) {
+                rnd <<= 1;
+            }
+        }
+        return rnd;
+    };
+
+    auto rnd = rangeRND(min_rnd, max_rnd);
+    std::cout << (std::string)rnd << std::endl;
+
+    auto pow_mod = [](bd_type& a, bd_type& x, const bd_type& n)
+    {
+        bd_type r = 1;
+
+        while (!(!x)) {
+            if (x.get_bit(0) == 1)
+                r = a * r % n;
+            x >>= 1;
+            a = a * a % n;
+        }
+        return r;
+    };
+
+    auto mul_mod = [](const bd_type& a, bd_type& b, const bd_type& m) {
+        bd_type x = 0;
+        bd_type y = a % m;
+        while (b > 0) {
+            if (b.get_bit(0) == 1) {
+                x = (x + y) % m;
+            }
+            y = (y * 2) % m;
+            b >>= 1;
+        }
+        return x % m;
+    };
+
+    auto isprime = [rangeRND, pow_mod, mul_mod](const bd_type& p, int iteration) -> bool
+    {
+        if (p < 2) {
+            return false;
+        }
+        if (p != 2 && p % 2 == 0) {
+            return false;
+        }
+        bd_type s = p - 1;
+        while (s.get_bit(0) == 0) {
+            s >>= 1;
+        }
+        for (int i = 0; i < iteration; i++) {
+            bd_type a = rangeRND(2, p - 1);
+            bd_type temp = s;
+            bd_type mod = pow_mod(a, temp, p);
+            while (temp != p - 1 && mod != 1 && mod != p - 1) {
+                mod = mul_mod(mod, mod, p);
+                temp <<= 1;
+            }
+            if (mod != p - 1 && temp.get_bit(0) == 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    auto isprime2 = [rangeRND, pow_mod](const bd_type& n, int k) -> bool
+    {
+            if (n == 2 || n == 3) return true;
+        if (n <= 1 || !n.get_bit(0)) return false;
+
+        int s = 0;
+        for (bd_type m = n - 1; !m.get_bit(0); ++s, m >>= 1)
+            ; // loop
+
+        bd_type d = (n - 1) / (1 << s);
+
+        for (int i = 0; i < k; ++i) {
+            bd_type a = rangeRND(2, n - 2);
+            bd_type x = pow_mod(a, d, n);
+
+            if (x == 1 || x == n - 1)
+                continue;
+
+            bd_type two = 2;
+            for (int r = 1; r <= s - 1; ++r) {
+                x = pow_mod(x, two, n);
+                if (x == 1) return false;
+                if (x == n - 1) goto LOOP;
+            }
+
+            return false;
+        LOOP:
+            continue;
+        }
+        // n is *probably* prime
+        return true;
+    };
+
+    const int iterations = 5;
+
+    EXPECT_EQ(isprime2(5309, iterations), true);
+    EXPECT_EQ(isprime2(5323, iterations), true);
+    EXPECT_EQ(isprime2(5333, iterations), true);
+    EXPECT_EQ(isprime2(5347, iterations), true);
+
+    //{
+    //    std::cout << "isprime: ";
+    //    auto begin = std::chrono::high_resolution_clock::now();
+    //    EXPECT_EQ(isprime("51005530961253722482261718614656880185097370446034996930418103416894274005252353593372446213924815845432386704430253648514530003549578573606936654506472499", iterations), true);
+    //    auto end = std::chrono::high_resolution_clock::now();
+    //    std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << "ns" << std::endl;
+    //}
+    {
+        MillerRabinTest <bd_type>test;
+        std::cout << "MillerRabinTest isprime :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        EXPECT_EQ(test.isprime("51005530961253722482261718614656880185097370446034996930418103416894274005252353593372446213924815845432386704430253648514530003549578573606936654506472499", iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns" << std::endl;
+    }
+    {
+        std::cout << "fermatest :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        bd_type test = "51005530961253722482261718614656880185097370446034996930418103416894274005252353593372446213924815845432386704430253648514530003549578573606936654506472499";
+        EXPECT_EQ(test.fermatest(iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns" << std::endl;
+    }
+    //{
+    //    std::cout << "isprime :";
+    //    auto begin = std::chrono::high_resolution_clock::now();
+    //    EXPECT_EQ(isprime("67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457", iterations), true);
+    //    auto end = std::chrono::high_resolution_clock::now();
+    //    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    //}
+    {
+        std::cout << "isprime2 :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        EXPECT_EQ(isprime2("67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457", iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    {
+        std::cout << "fermatest :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        bd_type test = "67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457";
+        EXPECT_EQ(test.fermatest(iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    //{
+    //    std::cout << "isprime :";
+    //    auto begin = std::chrono::high_resolution_clock::now();
+    //    EXPECT_EQ(isprime("67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304007", iterations), false);
+    //    auto end = std::chrono::high_resolution_clock::now();
+    //    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    //}
+    {
+        std::cout << "isprime2 (false):\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        EXPECT_EQ(isprime2("67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304007", iterations), false);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    {
+        std::cout << "fermatest (false):\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        bd_type test = "67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304007";
+        EXPECT_EQ(test.fermatest(iterations), false);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    {
+        std::cout << "isprime2 :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        EXPECT_EQ(isprime2("6494198219020758539417716747176108517882264014723322332720620277298263936658043762289938686434329484524239241377176641444136920508800077669600552936173446112816437507968340609988250204037003642321315834034052490798001718340214979789145328879673114507924815307852800346844778204413220958230560177967557837604979", iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    {
+        std::cout << "fermatest :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        bd_type test = "6494198219020758539417716747176108517882264014723322332720620277298263936658043762289938686434329484524239241377176641444136920508800077669600552936173446112816437507968340609988250204037003642321315834034052490798001718340214979789145328879673114507924815307852800346844778204413220958230560177967557837604979";
+        EXPECT_EQ(test.fermatest(iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    {
+        std::cout << "isprime2 :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        EXPECT_EQ(isprime2("1835308633573181144574996018712707107703618988816523454061501326287182882262258128150526339726738919300967456390927474404471339128135531409582617319421154435102840212091626703325236142848384866688700206285260914411326219036273273963669822964742104655335570770338911139447091577211383970786667671666233763163580890323259394695060768310216976803424472368658511039274842105528517914157194847517063247379350393209529401432821757861653804451109943913056920904841662678796857635543205330853960009696613151880600815271335459700636036220681811835835646615347695232399755401897267359173448481569814705784385349447242197380942920781415288615665688457900470581290596598017646432840889310296570714855345399601177501582042014125547291130780129530133038664552656031459062789824867111234707366624549300369425796913699998122257170327457982127568720997306850741791910919214661573409713708846538409051101464946887027025957054088762493176582201691077511702370215081034602174631601855824540059580240359033729174131977378871639224348638882583688322534537267246528837821968187777182691300726380317492928817292957619147992671076632833401003219104654449812846628121073243698378312177028679534169218572477194855816047746191841182958708373938563439169484586269", iterations), false);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+
+
 }
