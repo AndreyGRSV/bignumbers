@@ -509,7 +509,7 @@ TEST(BDigTest, MathFunctionsPrime)
     using bd_type = ::sag::bdig<10000, 0>;
     bd_type value;
 
-    for (int i = 0; i < sizeof(PrimeNumbers) / sizeof(unsigned); ++i)
+    for (std::size_t i = 0; i < sizeof(PrimeNumbers) / sizeof(unsigned); ++i)
     {
         value = PrimeNumbers[i];
         // std::cout << PrimeNumbers[i] << std::endl;
@@ -518,7 +518,7 @@ TEST(BDigTest, MathFunctionsPrime)
     }
 
     unsigned NotPrimeNumbers[] = {10, 12, 60, 1000, 1200, 2245, 3302, 5000, 5001, 102345, 3456789};
-    for (int i = 0; i < sizeof(NotPrimeNumbers) / sizeof(unsigned); ++i)
+    for (std::size_t i = 0; i < sizeof(NotPrimeNumbers) / sizeof(unsigned); ++i)
     {
         value = NotPrimeNumbers[i];
         // std::cout << NotPrimeNumbers[i] << std::endl;

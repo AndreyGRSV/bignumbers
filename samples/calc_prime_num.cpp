@@ -1092,7 +1092,7 @@ const int digits4096 = digits(bits4096);
 struct CalculateParams {
     int bits = 128;
     int digits10 = 0;
-    int test_iterations = 1;
+    int test_iterations = 2;
     int check_test_iterations = 10;
     int try_before_restart = 10;
 };
@@ -1200,9 +1200,7 @@ void CalculatePrime(const CalculateParams& params) {
     long long l_min = 1000000000000000000L;
     std::uniform_int_distribution<long long> uniform_dist(
         l_min, ::std::numeric_limits<long long>::max());
-    long long last10 =
-        ::std::pow(10, ::std::numeric_limits<long long>::digits10);
-      ::std::pow(10, digits10 % ::std::numeric_limits<unsigned long>::digits10);
+    long long last10 =  ::std::pow(10, ::std::numeric_limits<long long>::digits10);
     auto getRNDNumber = [&] {
         prime = 2;
         prime = prime.pow(params.bits) - 1;
@@ -1243,24 +1241,6 @@ void CalculatePrime(const CalculateParams& params) {
 
         std::cout << ".";
     } while (true);
-      }
-    }
-
-    // for (int i = 3; i < 50; i += 2) {
-    //   if (!(prime % i)) {
-    //     pr = false;
-    //     break;
-    //   }
-    // }
-    if (pr) {
-      if (prime.fermatest(3)) {
-        std::cout << "------------------ prime.fermatest(3) ----------------------" << std::endl;
-        break;
-      }
-    }
-    //::std::cout << "Non prime number:" << (std::string)prime << ::std::endl;
-    prime += 2;
-  } while (true);
 
     std::cout << "------------------ prime.fermatest("<< params.check_test_iterations <<") ----------------------" << std::endl;
     if (prime.fermatest(params.check_test_iterations)) {
@@ -1304,13 +1284,6 @@ int main(int argC, char** argV) {
     if (!gParams.processing(argC, argV))
         return 1;
  
-    SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-
-    auto result = SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    if (result != TRUE) {
-        std::cout << "SetThreadPriority error" << std::endl;
-    }
-
     if (bits512 >= pr.bits) {
         CalculatePrime<::sag::bdig<digits512 * 2>>(pr);
     } else if (bits1024 >= pr.bits) {
