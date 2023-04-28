@@ -12,6 +12,11 @@
 #include <memory>
 #include <string>
 
+#ifdef TEST_SUPPORT_FUNC
+  #include <iostream>
+  #include <fstream>
+#endif
+
 namespace sag {
 const char *pPI_1000 = "3.14159265358979323846264338327950288419716939937510"
                        "58209749445923078164062862089986280348253421170679"
@@ -203,8 +208,8 @@ class bdig {
   void shr(const unsigned bits = 1) {
     T set_bit = 0;
 
-    unsigned msi = most_significant_index() - 1;
-    // msi = std::max (msi, 0);
+    unsigned msi = most_significant_index();
+    //msi = msi ? msi - 1 : msi;
 
     for (unsigned i = msi; i < isz; i++) {
       set_bit = shr_sop(i, bits, set_bit);
@@ -1236,6 +1241,7 @@ typename enable_if<std::numeric_limits<Ti>::is_integer &&
                        std::numeric_limits<Ti>::is_signed,
                    bdig>::type &
 operator=(Ti v) {
+  is_negative = false;
   if (v < 0)
     is_negative = true;
 
@@ -1432,7 +1438,7 @@ int contains_digits() {
   bits += bit;
   return (int)(bits * 301 / 1000) + 1;
 }
-friend std::ostream &operator<<(std::ostream &output, const bdig &rhs) {
+friend std::ostream &operator<<(std::ostream &output, bdig &rhs) {
   std::vector<std::string> data;
   int digits_cnt = 1000; // std::numeric_limits <long long>::digits10
   bdig tmp10 = 10;
@@ -1451,10 +1457,10 @@ friend std::ostream &operator<<(std::ostream &output, const bdig &rhs) {
        it != data.rend(); ++it)
     output << *it << std::endl;
 
-  // int msi = rhs.most_significant_index();
-  // output.write ((std::ostream::char_type *)&rhs.integer[msi], (isz -
-msi) * sizeof(T) / sizeof (std::ostream::char_type));
-return output;
+  //  int msi = rhs.most_significant_index();
+  //  output.write ((std::ostream::char_type *)&rhs.integer[msi], (isz -msi) *
+  //  sizeof(T) / sizeof (std::ostream::char_type));
+  return output;
 }
 void store(const char *name) {
   std::ofstream out;
