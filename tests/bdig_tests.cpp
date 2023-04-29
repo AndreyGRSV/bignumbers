@@ -21,15 +21,26 @@ TEST(BDigTest, CompareDigits) {
   EXPECT_EQ(value2 == "100", true);
   EXPECT_EQ(value2 == check_value, true);
   EXPECT_EQ(value2 != check_value + 1, true);
+  value1 = "-100";
+  EXPECT_EQ(value1, -100);
+
+  const auto precision = 10;
+  ::sag::bdig<number_digits, precision> valueWithPoint;
+  valueWithPoint = "100.01";
+  valueWithPoint *= 100;
+  EXPECT_EQ(valueWithPoint, 10001);
+
+  valueWithPoint = "1'222'333";
+  EXPECT_EQ(valueWithPoint, 1222333);
 
   const char *max_value = "99999999999999999999999999999999999999999999999999";
   value1 = max_value;
   result = value1 == max_value;
-  EXPECT_EQ(value1 == max_value, true);
+  EXPECT_EQ(result, true);
 
   value2 = max_value;
   result = value2 == max_value;
-  EXPECT_EQ(value2 == max_value, true);
+  EXPECT_EQ(result, true);
   EXPECT_EQ(value1 == value2, true);
 
   value1 = -1;
@@ -72,6 +83,9 @@ TEST(BDigTest, AdditionSubtractionDigits) {
   EXPECT_EQ(value1, 1);
   value1 -= 1;
   EXPECT_EQ(value1, 0);
+  value1 = 0;
+  value1 -= 1;
+  EXPECT_EQ(value1, -1);
 
   value1 = max_value;
   value2 = max_value;
@@ -83,6 +97,17 @@ TEST(BDigTest, AdditionSubtractionDigits) {
 
   value2 = max_value - value1;
   EXPECT_EQ(value2, 0);
+
+  value1 = -1;
+  value1 = -value1;
+  EXPECT_EQ(value1, 1);
+  value1 = -value1;
+  EXPECT_EQ(value1, -1);
+
+  value1 = 0;
+  value1 = -value1;
+  value1 -= 1;
+  EXPECT_EQ(value1, -1);
 }
 
 // Test the mul/div operators of digits
@@ -132,11 +157,45 @@ TEST(BDigTest, MulDivDigits) {
   EXPECT_EQ(0 / value1, 0);
 }
 
+TEST(BDigTest, ShiftOperators) {
+  ::sag::bdig<1> value;
+  value = 1;
+  value <<= 1;
+  EXPECT_EQ(value, 2);
+  value = 4;
+  value >>= 1;
+  EXPECT_EQ(value, 2);
+
+  value = 1;
+  value = value << 1;
+  EXPECT_EQ(value, 2);
+  value = 4;
+  value = value >> 1;
+  EXPECT_EQ(value, 2);
+
+  ::sag::bdig<10> value1;
+  value1 = 0x1000;
+  value1 >>= 1;
+  EXPECT_EQ(value1, 0x800);
+
+  value1 = 0x1000;
+  value1 <<= 1;
+  EXPECT_EQ(value1, 0x2000);
+
+  value1 = 0x10000000;
+  value1 >>= 17;
+  EXPECT_EQ(value1, 0x800);
+
+  value1 = 0x800;
+  value1 <<= 17;
+  EXPECT_EQ(value1, 0x10000000);
+}
+
 class CheckVariantData {
-  const char *szValue;
-  const char *szParam;
-  int iParam;
-  const char *wantResult;
+  const char *szValue = "";
+  const char *szParam = "";
+  int iParam = 0;
+  const char *wantResult = "";
 
   const int iterations = 140;
 
@@ -193,17 +252,15 @@ class CheckVariantData {
 
 public:
   CheckVariantData(int param, const char *want)
-      : szValue(""), iParam(param), wantResult(want) {}
+      : iParam(param), wantResult(want) {}
   CheckVariantData(const char *param1, int param2, const char *want)
       : szValue(param1), iParam(param2), wantResult(want) {}
   CheckVariantData(const char *param1, const char *want)
-      : szValue(param1), iParam(0), wantResult(want) {}
+      : szValue(param1), wantResult(want) {}
   CheckVariantData(const char *param1, const char *param2, const char *want)
-      : szValue(param1), szParam(param2), iParam(0), wantResult(want) {}
+      : szValue(param1), szParam(param2), wantResult(want) {}
 
   template <class T, class F> void Check(T num, const F func) const {
-    // static_assert(std::is_same_v<F1, decltype(T1(T1::*)())>, "func1 is not a
-    // sapported. T1(T1::*)()");
     static_assert(std::is_member_function_pointer_v<F>,
                   "T::F func is not a member function.");
 
@@ -420,8 +477,9 @@ TEST(BDigTest, MathFunctionsLog) {
       {"25", "72004899337.38587252416135146561"}, // 72004899337,38590000000000
       {"0.04", "1.04081077419238822671"},         // 1,04081077419239
       {"0.0025", "1.00250312760579508495"},       // 1,00250312760580
-      {"100", "26878707852501517282815748377146333474410329."
-              "25858540110041213736"}, // 26881171418161400000000000000000000000000000,00000000000000
+      {"100",
+       "26878707852501517282815748377146333474410329."
+       "25858540110041213736"}, // 26881171418161400000000000000000000000000000,00000000000000
       {"-1", "0.36787944117144232160"},       // 0,36787944117144
       {"-2", "0.13533528323661269189"},       // 0,13533528323661
       {"8", "2980.95798704172827474335"},     // 2980,95798704173000

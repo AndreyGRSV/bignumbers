@@ -1122,7 +1122,6 @@ unsigned PrimeNumbers[] = {
 #include <map>
 #include <regex>
 
-
 class params {
   using FunctionType = std::function<void(const params &)>;
 
