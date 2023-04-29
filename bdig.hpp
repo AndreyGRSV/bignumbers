@@ -1484,7 +1484,7 @@ void load(const char *name) {
     in.read((std::ifstream::char_type *)integer,
             isz * sizeof(T) / sizeof(std::ifstream::char_type));
     in.close();
-  } catch (std::ios_base::failure f) {
+  } catch (std::ios_base::failure& f) {
     std::cout << "Caught an exception: " << f.what()
               << "char_type:" << sizeof(std::ifstream::char_type) << std::endl;
     std::cout << "offset:"
