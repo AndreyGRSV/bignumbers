@@ -181,6 +181,14 @@ TEST(BDigTest, ShiftOperators) {
     value1 = 0x1000;
     value1 <<= 1;
     EXPECT_EQ(value1, 0x2000);
+
+    value1 = 0x10000000;
+    value1 >>= 17;
+    EXPECT_EQ(value1, 0x800);
+
+    value1 = 0x800;
+    value1 <<= 17;
+    EXPECT_EQ(value1, 0x10000000);
 }
 
 class CheckVariantData {

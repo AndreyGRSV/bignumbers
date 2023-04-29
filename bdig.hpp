@@ -1470,7 +1470,7 @@ void store(const char *name) {
     out.write((std::ostream::char_type *)&integer[0],
               isz * sizeof(T) / sizeof(std::ostream::char_type));
     out.close();
-  } catch (std::ios_base::failure f) {
+  } catch (std::ios_base::failure& f) {
     std::cout << "Caught an exception: " << f.what() << std::endl;
   }
 }
@@ -1480,7 +1480,7 @@ void load(const char *name) {
   try {
     in.open(name, in.binary);
     in.seekg(-(isz * sizeof(T) / sizeof(std::ifstream::char_type)), in.end);
-    std::streamoff pos = in.tellg();
+    //std::streamoff pos = in.tellg();
     in.read((std::ifstream::char_type *)integer,
             isz * sizeof(T) / sizeof(std::ifstream::char_type));
     in.close();
