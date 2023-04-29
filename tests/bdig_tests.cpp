@@ -158,41 +158,41 @@ TEST(BDigTest, MulDivDigits) {
 }
 
 TEST(BDigTest, ShiftOperators) {
-    ::sag::bdig<1> value;
-    value = 1;
-    value <<= 1;
-    EXPECT_EQ(value, 2);
-    value = 4;
-    value >>= 1;
-    EXPECT_EQ(value, 2);
+  ::sag::bdig<1> value;
+  value = 1;
+  value <<= 1;
+  EXPECT_EQ(value, 2);
+  value = 4;
+  value >>= 1;
+  EXPECT_EQ(value, 2);
 
-    value = 1;
-    value = value << 1;
-    EXPECT_EQ(value, 2);
-    value = 4;
-    value = value >> 1;
-    EXPECT_EQ(value, 2);
+  value = 1;
+  value = value << 1;
+  EXPECT_EQ(value, 2);
+  value = 4;
+  value = value >> 1;
+  EXPECT_EQ(value, 2);
 
-    ::sag::bdig<10> value1;
-    value1 = 0x1000;
-    value1 >>= 1;
-    EXPECT_EQ(value1, 0x800);
+  ::sag::bdig<10> value1;
+  value1 = 0x1000;
+  value1 >>= 1;
+  EXPECT_EQ(value1, 0x800);
 
-    value1 = 0x1000;
-    value1 <<= 1;
-    EXPECT_EQ(value1, 0x2000);
+  value1 = 0x1000;
+  value1 <<= 1;
+  EXPECT_EQ(value1, 0x2000);
 
-    value1 = 0x10000000;
-    value1 >>= 17;
-    EXPECT_EQ(value1, 0x800);
+  value1 = 0x10000000;
+  value1 >>= 17;
+  EXPECT_EQ(value1, 0x800);
 
-    value1 = 0x800;
-    value1 <<= 17;
-    EXPECT_EQ(value1, 0x10000000);
+  value1 = 0x800;
+  value1 <<= 17;
+  EXPECT_EQ(value1, 0x10000000);
 }
 
 class CheckVariantData {
-  const char *szValue ="";
+  const char *szValue = "";
   const char *szParam = "";
   int iParam = 0;
   const char *wantResult = "";
@@ -477,8 +477,9 @@ TEST(BDigTest, MathFunctionsLog) {
       {"25", "72004899337.38587252416135146561"}, // 72004899337,38590000000000
       {"0.04", "1.04081077419238822671"},         // 1,04081077419239
       {"0.0025", "1.00250312760579508495"},       // 1,00250312760580
-      {"100", "26878707852501517282815748377146333474410329."
-              "25858540110041213736"}, // 26881171418161400000000000000000000000000000,00000000000000
+      {"100",
+       "26878707852501517282815748377146333474410329."
+       "25858540110041213736"}, // 26881171418161400000000000000000000000000000,00000000000000
       {"-1", "0.36787944117144232160"},       // 0,36787944117144
       {"-2", "0.13533528323661269189"},       // 0,13533528323661
       {"8", "2980.95798704172827474335"},     // 2980,95798704173000
