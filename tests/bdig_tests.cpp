@@ -4,14 +4,24 @@
 
 #include <gtest/gtest.h>
 
+
+// using element_type = unsigned long long;
+// using element_type = unsigned int;
+// using uint128_t = unsigned __int128;
+using element_type = sag::uint128_t;
+
 // Test the comparison operators of digits
 TEST(BDigTest, CompareDigits)
 {
     const auto number_digits = 50;
     const auto check_value = 100;
-    using b_int = ::sag::bdig<number_digits>;
+    using b_int = ::sag::bdig<number_digits, 0, element_type>;
     b_int value1{check_value};
     b_int value2{check_value};
+    int msb = value1.most_significant_bit<element_type>(0x0FFF);
+    msb = value1.most_significant_bit<unsigned long>(0x0FFF);
+    // msb = value1.most_significant_bit<unsigned short>(0x0FFF);
+    // msb = value1.most_significant_bit<unsigned char>(0xFF);
     bool result = value1 == value2;
     EXPECT_EQ(result, true);
     auto digits = b_int::digits10;
@@ -57,12 +67,14 @@ TEST(BDigTest, CompareDigits)
 // Test the addition operators of digits
 TEST(BDigTest, AdditionSubtractionDigits)
 {
-    ::sag::bdig<1> value1;
-    ::sag::bdig<1> value2;
-    const auto max_value = 0xFF;
+    using bdig_t = ::sag::bdig<1,0,element_type>;
+    bdig_t value1;
+    bdig_t value2;
+    const auto max_value = std::numeric_limits<element_type>::max();
     value1 = max_value;
     value2 = max_value;
-    EXPECT_EQ(value1 + value2, max_value - 1);
+    bdig_t v = value1 + value2;
+    EXPECT_EQ(value1 + value2, std::numeric_limits<element_type>::max() - 1);
     value1 += 1;
     EXPECT_EQ(value1, 0);
     value1 += -1;
@@ -91,8 +103,9 @@ TEST(BDigTest, AdditionSubtractionDigits)
 // Test the mul/div operators of digits
 TEST(BDigTest, MulDivDigits)
 {
-    ::sag::bdig<1> value1;
-    ::sag::bdig<1> value2;
+    using bdig_t = ::sag::bdig<1,0,element_type>;
+    bdig_t value1;
+    bdig_t value2;
 
     // Normal positive values
     value1 = 1;
@@ -195,7 +208,7 @@ public:
     CheckVariantData(const char *param1, const char *param2, const char *want) : szValue(param1), szParam(param2), iParam(0), wantResult(want) {}
 
     template <class T, class F>
-    void Check(T num, const F func) const
+    void Check(T num, const F func, const std::string_view& info) const
     {
         // static_assert(std::is_same_v<F1, decltype(T1(T1::*)())>, "func1 is not a sapported. T1(T1::*)()");
         static_assert(std::is_member_function_pointer_v<F>, "T::F func is not a member function.");
@@ -203,26 +216,27 @@ public:
         num = szValue;
         auto got = callFunc(num, func);
 
-        std::cout << szValue << ":\t" << iParam << " " << szValue << "\t" << got << "\t" << wantResult << std::endl;
-        EXPECT_EQ(got, wantResult);
+        // std::cout << szValue << ":\t" << iParam << " " << szValue << "\t" << got << "\t" << wantResult << std::endl;
+        EXPECT_EQ(got, wantResult) << info << ", szValue:" << szValue << ", szParam:" << szParam << ", iParam:" << iParam;
     }
 };
 
-auto checkAllValues = [](const std::vector<CheckVariantData> &vec, const auto num1, const auto func1, const auto num2, const auto func2)
+auto checkAllValues = [](const std::vector<CheckVariantData> &vec, const auto num1, const auto func1, const auto num2, const auto func2, const std::string_view comment = "")
 {
     for (const auto &d : vec)
     {
-        d.Check(num1, func1);
-        d.Check(num2, func2);
+        d.Check(num1, func1, comment);
+        d.Check(num2, func2, comment);
     }
 };
 
 // Test the trigonometry functions
 TEST(BDigTest, MathFunctionsTrigonometry)
+
 {
     const int precision = 20;
-    using bd_type1 = ::sag::bdig<1, precision>;
-    using bd_type2 = ::sag::bdig<10000, precision>;
+    using bd_type1 = ::sag::bdig<1, precision, element_type>;
+    using bd_type2 = ::sag::bdig<10000, precision, element_type>;
     bd_type1 value1;
     bd_type2 value2;
 
@@ -234,6 +248,31 @@ TEST(BDigTest, MathFunctionsTrigonometry)
     value2 = 1;
     EXPECT_EQ(value1.abs(), 1);
     EXPECT_EQ(value2.abs(), 1);
+
+    std::string str = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+    std::string str_value;
+    for (int i = 0; i < 20; i++)
+        str_value += str;
+    std::string str_value2;
+    for (int i = 0; i < 2; i++)
+        str_value2 += str;
+    // std::cout << str << std::endl;
+    std::cout << "Start" << std::endl;
+    ::sag::bdig<2200,0,element_type> vbig = str_value.c_str(), vb_res, vb_divid = str.c_str(), vbig2 = str_value2.c_str();
+
+        auto begin = std::chrono::high_resolution_clock::now();
+        long op = 0;
+        for (;;) {
+            vb_res = vbig * vbig2;
+            op++;
+            auto end = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > 1000)
+                break;
+        }
+        std::cout << op  << " operations in second" << std::endl;
+
+    std::cout << "End" << std::endl;
+    // std::cout << (std::string)vbig << std::endl;
 
     const std::vector<CheckVariantData> checkMatrixCos{
         {0, "1.00000000000000000000"},    //  1,000000000000000
@@ -262,7 +301,7 @@ TEST(BDigTest, MathFunctionsTrigonometry)
         {-90, "0.00000000000000000083"}   //  0,000000000000000
     };
 
-    checkAllValues(checkMatrixCos, value1, &bd_type1::cos, value2, &bd_type2::cos);
+    checkAllValues(checkMatrixCos, value1, &bd_type1::cos, value2, &bd_type2::cos, "bdig::cos()");
 
     const std::vector<CheckVariantData> checkMatrixSin{
         {0, "0.00000000000000000000"},     //  0,00000000000000
@@ -292,15 +331,15 @@ TEST(BDigTest, MathFunctionsTrigonometry)
         {-540, "0.00000000000000000000"}   //  0,00000000000000
     };
 
-    checkAllValues(checkMatrixSin, value1, &bd_type1::sin, value2, &bd_type2::sin);
+    checkAllValues(checkMatrixSin, value1, &bd_type1::sin, value2, &bd_type2::sin, "bdig::sin()");
 }
 
 // Test the math functions
 TEST(BDigTest, MathFunctionsPowSqrt)
 {
     const int precision = 20;
-    using bd_type1 = ::sag::bdig<1, precision>;
-    using bd_type2 = ::sag::bdig<10000, precision>;
+    using bd_type1 = ::sag::bdig<1, precision, element_type>;
+    using bd_type2 = ::sag::bdig<100, precision, element_type>;
     bd_type1 value1;
     bd_type2 value2;
 
@@ -339,7 +378,7 @@ TEST(BDigTest, MathFunctionsPowSqrt)
         {"-1", -2, "1.00000000000000000000"},
     };
 
-    checkAllValues(checkMatrixPow, value1, &bd_type1::pow, value2, &bd_type2::pow);
+    checkAllValues(checkMatrixPow, value1, &bd_type1::pow, value2, &bd_type2::pow, "bdig::pow()");
 
     const std::vector<CheckVariantData> checkMatrixSqrt{
         {"0", "0.00000000000000000000"},
@@ -359,15 +398,15 @@ TEST(BDigTest, MathFunctionsPowSqrt)
         {"-100", "0.00000000000000000000"},
     };
 
-    checkAllValues(checkMatrixSqrt, value1, &bd_type1::sqrt, value2, &bd_type2::sqrt);
+    checkAllValues(checkMatrixSqrt, value1, &bd_type1::sqrt, value2, &bd_type2::sqrt, "bdig::sqrt()");
 }
 
 // Test the math functions
 TEST(BDigTest, MathFunctionsLog)
 {
     const int precision = 20;
-    using bd_type1 = ::sag::bdig<1000, precision>;
-    using bd_type2 = ::sag::bdig<10000, precision>;
+    using bd_type1 = ::sag::bdig<1000, precision, element_type>;
+    using bd_type2 = ::sag::bdig<10000, precision, element_type>;
     bd_type1 value1;
     bd_type2 value2;
 
@@ -388,7 +427,7 @@ TEST(BDigTest, MathFunctionsLog)
         {"64", "6.00000000000000000000"},
         {"128", "7.00000000000000000000"},
     };
-    checkAllValues(checkMatrixLog2, value1, &bd_type1::log2, value2, &bd_type2::log2);
+    checkAllValues(checkMatrixLog2, value1, &bd_type1::log2, value2, &bd_type2::log2, "bdig::log2()");
 
     const std::vector<CheckVariantData> checkMatrixLn{
         {"0", "0.00000000000000000000"},
@@ -407,7 +446,7 @@ TEST(BDigTest, MathFunctionsLog)
         {"64", "4.15888308335967185699"},  // 4,15888308335967
         {"128", "4.85203026391961716649"}, // 4,85203026391962
     };
-    checkAllValues(checkMatrixLn, value1, &bd_type1::ln, value2, &bd_type2::ln);
+    checkAllValues(checkMatrixLn, value1, &bd_type1::ln, value2, &bd_type2::ln, "bdig::ln()");
 
     const std::vector<CheckVariantData> checkMatrixExp{
         {"0", "1.00000000000000000000"},
@@ -426,7 +465,7 @@ TEST(BDigTest, MathFunctionsLog)
         {"64", "6235149080811615890313932116.50233310070025470907"},                              // 6235149080811620000000000000,00000000000000
         {"128", "32861299618848347303262577416218686705752852894060805148.62997146378348867557"}, // 38877084059946000000000000000000000000000000000000000000,00000000000000
     };
-    checkAllValues(checkMatrixExp, value1, &bd_type1::exp, value2, &bd_type2::exp);
+    checkAllValues(checkMatrixExp, value1, &bd_type1::exp, value2, &bd_type2::exp, "bdig::exp()");
 
     const std::vector<CheckVariantData> checkMatrixExpPow{
         {"0", "0", "1.00000000000000000000"},
@@ -439,15 +478,15 @@ TEST(BDigTest, MathFunctionsLog)
         {"4", "0.05", "1.07177346253629316416"},  // 1,07177346253629
         {"4", "-0.05", "0.93303299153680741598"}, // 0,93303299153681
     };
-    checkAllValues(checkMatrixExpPow, value1, &bd_type1::powe, value2, &bd_type2::powe);
+    checkAllValues(checkMatrixExpPow, value1, &bd_type1::powe, value2, &bd_type2::powe, "bdig::powe()");
 }
 
 // Test for Karatsuba multiplication
 TEST(BDigTest, MathFunctionsKaratsuba)
 {
     const int precision = 0;
-    using bd_type1 = ::sag::bdig<1000, precision>;
-    using bd_type2 = ::sag::bdig<1000, precision>;
+    using bd_type1 = ::sag::bdig<1000, precision, element_type>;
+    using bd_type2 = ::sag::bdig<1000, precision, element_type>;
     bd_type1 value1;
     bd_type2 value2;
 
@@ -465,7 +504,7 @@ TEST(BDigTest, MathFunctionsKaratsuba)
         {"123456789012345678901234567890123456789012345678901234567890", "123456789012345678901234567890123456789012345678901234567890",
          "15241578753238836750495351562566681945008382873376009755225087639153757049236500533455762536198787501905199875019052100"},
     };
-    checkAllValues(checkMatrixKaratsuba, value1, &bd_type1::Karatsuba, value2, &bd_type2::Karatsuba);
+    checkAllValues(checkMatrixKaratsuba, value1, &bd_type1::Karatsuba, value2, &bd_type2::Karatsuba, "bdig::Karatsuba()");
 }
 
 TEST(BDigTest, MathFunctionsPrime)
@@ -507,7 +546,7 @@ TEST(BDigTest, MathFunctionsPrime)
         4733, 4751, 4759, 4783, 4787, 4789, 4793, 4799, 4801, 4813, 4817, 4831, 4861, 4871, 4877, 4889, 4903, 4909, 4919, 4931, 4933, 4937, 4943, 4951, 4957, 4967, 4969, 4973,
         4987, 4993, 4999, 5003, 5009, 5011, 5021, 5023, 5039, 5051, 5059, 5077, 5081, 5087, 5099, 5101, 5107, 5113, 5119, 5147, 5153, 5167, 5171, 5179, 5189, 5197, 5209, 5227, 5231, 5233, 5237, 5261, 5273, 5279, 5281, 5297,
         5303, 5309, 5323, 5333, 5347, 5351, 5381, 5387, 5393, 5399, 5407, 5413, 5417, 5419, 5431, 5437, 5441, 5443, 5449, 5471, 5477, 5479, 5483, 5501, 5503, 5507, 5519, 5521, 5527, 5531, 5557, 5563, 5569, 5573, 5581, 5591, 5623, 5639, 5641};
-    using bd_type = ::sag::bdig<10000, 0>;
+    using bd_type = ::sag::bdig<10000, 0, element_type>;
     bd_type value;
 
     for (std::size_t i = 0; i < sizeof(PrimeNumbers) / sizeof(unsigned); ++i)
@@ -549,6 +588,9 @@ TEST(BDigTest, MathFunctionsPrime)
     EXPECT_EQ(value.LucasLehmer(9), false);
     EXPECT_EQ(value.LucasLehmer(10), false);
 }
+
+
+#ifdef TEST_PRIME_TESTS
 
 #include <random>
 
@@ -647,6 +689,7 @@ public:
 TEST(BDigTest, RandomRange)
 {
     using bd_type = ::sag::bdig<3000, 0>;
+    using bd_type_ll = ::sag::bdig<3000, 0, unsigned long long>;
     const bd_type max_rnd = "9'000'000'000'000'000'000'000'000'000'000'000'000'000'000'000";
 //                          "3'002'990'716'154'154'292'151'553'913'584'451'409'837'973'890"
     const bd_type min_rnd = "1'000'000'000'000'000'000'000'000'000'000'000'000'000'000'000";
@@ -677,7 +720,7 @@ TEST(BDigTest, RandomRange)
             }
             auto rnd_value = uniform_dist(eng);
             rnd += rnd_value;
-        } 
+        }
 
         while (rnd > max || rnd < min) {
 
@@ -803,9 +846,25 @@ TEST(BDigTest, RandomRange)
         std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns" << std::endl;
     }
     {
+        MillerRabinTest <bd_type_ll>test;
+        std::cout << "MillerRabinTest isprime ll :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        EXPECT_EQ(test.isprime("51005530961253722482261718614656880185097370446034996930418103416894274005252353593372446213924815845432386704430253648514530003549578573606936654506472499", iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns" << std::endl;
+    }
+    {
         std::cout << "fermatest :\t";
         auto begin = std::chrono::high_resolution_clock::now();
         bd_type test = "51005530961253722482261718614656880185097370446034996930418103416894274005252353593372446213924815845432386704430253648514530003549578573606936654506472499";
+        EXPECT_EQ(test.fermatest(iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns" << std::endl;
+    }
+    {
+        std::cout << "fermatest ll :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        bd_type_ll test = "51005530961253722482261718614656880185097370446034996930418103416894274005252353593372446213924815845432386704430253648514530003549578573606936654506472499";
         EXPECT_EQ(test.fermatest(iterations), true);
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns" << std::endl;
@@ -818,9 +877,18 @@ TEST(BDigTest, RandomRange)
     //    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
     //}
     {
-        std::cout << "isprime2 :\t";
+        MillerRabinTest <bd_type>test;
+        std::cout << "MillerRabinTest isprime :\t";
         auto begin = std::chrono::high_resolution_clock::now();
-        EXPECT_EQ(isprime2("67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457", iterations), true);
+        EXPECT_EQ(test.isprime("67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457", iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    {
+        MillerRabinTest <bd_type_ll>test;
+        std::cout << "MillerRabinTest isprime ll :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        EXPECT_EQ(test.isprime("67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457", iterations), true);
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
     }
@@ -828,6 +896,14 @@ TEST(BDigTest, RandomRange)
         std::cout << "fermatest :\t";
         auto begin = std::chrono::high_resolution_clock::now();
         bd_type test = "67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457";
+        EXPECT_EQ(test.fermatest(iterations), true);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    }
+    {
+        std::cout << "fermatest ll :\t";
+        auto begin = std::chrono::high_resolution_clock::now();
+        bd_type_ll test = "67350883042030099536785419801426043685652610751620960499917960424198543967542913990743038439597088991808789107492843392031895400763366664864382997799557850239202488174473126670653552604417179162354270551348486713707449321602074576954678001130435514446775117422703466322711612382848380262448218422283329304457";
         EXPECT_EQ(test.fermatest(iterations), true);
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
@@ -870,12 +946,21 @@ TEST(BDigTest, RandomRange)
         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
     }
     {
-        std::cout << "isprime2 :\t";
+        std::cout << "fermatest ll 4098:\t";
         auto begin = std::chrono::high_resolution_clock::now();
-        EXPECT_EQ(isprime2("1835308633573181144574996018712707107703618988816523454061501326287182882262258128150526339726738919300967456390927474404471339128135531409582617319421154435102840212091626703325236142848384866688700206285260914411326219036273273963669822964742104655335570770338911139447091577211383970786667671666233763163580890323259394695060768310216976803424472368658511039274842105528517914157194847517063247379350393209529401432821757861653804451109943913056920904841662678796857635543205330853960009696613151880600815271335459700636036220681811835835646615347695232399755401897267359173448481569814705784385349447242197380942920781415288615665688457900470581290596598017646432840889310296570714855345399601177501582042014125547291130780129530133038664552656031459062789824867111234707366624549300369425796913699998122257170327457982127568720997306850741791910919214661573409713708846538409051101464946887027025957054088762493176582201691077511702370215081034602174631601855824540059580240359033729174131977378871639224348638882583688322534537267246528837821968187777182691300726380317492928817292957619147992671076632833401003219104654449812846628121073243698378312177028679534169218572477194855816047746191841182958708373938563439169484586269", iterations), false);
+        bd_type_ll test = "1835308633573181144574996018712707107703618988816523454061501326287182882262258128150526339726738919300967456390927474404471339128135531409582617319421154435102840212091626703325236142848384866688700206285260914411326219036273273963669822964742104655335570770338911139447091577211383970786667671666233763163580890323259394695060768310216976803424472368658511039274842105528517914157194847517063247379350393209529401432821757861653804451109943913056920904841662678796857635543205330853960009696613151880600815271335459700636036220681811835835646615347695232399755401897267359173448481569814705784385349447242197380942920781415288615665688457900470581290596598017646432840889310296570714855345399601177501582042014125547291130780129530133038664552656031459062789824867111234707366624549300369425796913699998122257170327457982127568720997306850741791910919214661573409713708846538409051101464946887027025957054088762493176582201691077511702370215081034602174631601855824540059580240359033729174131977378871639224348638882583688322534537267246528837821968187777182691300726380317492928817292957619147992671076632833401003219104654449812846628121073243698378312177028679534169218572477194855816047746191841182958708373938563439169484586269";
+        EXPECT_EQ(test.fermatest(iterations), false);
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
     }
-
+    // {
+    //     std::cout << "isprime2 :\t";
+    //     auto begin = std::chrono::high_resolution_clock::now();
+    //     EXPECT_EQ(isprime2("1835308633573181144574996018712707107703618988816523454061501326287182882262258128150526339726738919300967456390927474404471339128135531409582617319421154435102840212091626703325236142848384866688700206285260914411326219036273273963669822964742104655335570770338911139447091577211383970786667671666233763163580890323259394695060768310216976803424472368658511039274842105528517914157194847517063247379350393209529401432821757861653804451109943913056920904841662678796857635543205330853960009696613151880600815271335459700636036220681811835835646615347695232399755401897267359173448481569814705784385349447242197380942920781415288615665688457900470581290596598017646432840889310296570714855345399601177501582042014125547291130780129530133038664552656031459062789824867111234707366624549300369425796913699998122257170327457982127568720997306850741791910919214661573409713708846538409051101464946887027025957054088762493176582201691077511702370215081034602174631601855824540059580240359033729174131977378871639224348638882583688322534537267246528837821968187777182691300726380317492928817292957619147992671076632833401003219104654449812846628121073243698378312177028679534169218572477194855816047746191841182958708373938563439169484586269", iterations), false);
+    //     auto end = std::chrono::high_resolution_clock::now();
+    //     std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" << std::endl;
+    // }
 
 }
+
+#endif

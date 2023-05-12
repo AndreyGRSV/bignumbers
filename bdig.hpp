@@ -55,6 +55,10 @@ const char *pE_1000 = "2.71828182845904523536028747135266249775724709369995"
                       "01157477041718986106873969655212671546889570350354";
 
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+
+#include <vector>
+
+using uint128_t = unsigned __int128;
 using namespace std;
 
 #define QUOTE(x) #x
@@ -203,36 +207,39 @@ class bdig {
   void shr(const unsigned bits = 1) {
     T set_bit = 0;
 
-    unsigned msi = most_significant_index() - 1;
+    unsigned msi = most_significant_index();
     // msi = std::max (msi, 0);
 
     for (unsigned i = msi; i < isz; i++) {
       set_bit = shr_sop(i, bits, set_bit);
     }
   }
+public:
   inline int most_significant_index() const { return integer.get_lsi(); }
+
   template <class Ti>
   int most_significant_bit(
       Ti value, typename enable_if<is_same<Ti, unsigned short>::value ||
                                        is_same<Ti, unsigned long>::value
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-                                       || is_same<Ti, unsigned long long>::value
+          || is_same<Ti, unsigned int>::value || is_same<Ti, unsigned long long>::value || is_same<Ti, uint128_t>::value
 #endif
-                                   ,
-                                   Ti>::type = 0) const {
-    typedef typename conditional<
-        is_same<Ti, unsigned short>::value, unsigned char,
-        typename conditional<
-            is_same<Ti, unsigned long>::value, unsigned short,
+          ,Ti>::type = 0) const {
+typedef
+    typename conditional<is_same<Ti, unsigned short>::value, unsigned char,
+      typename conditional<is_same<Ti, unsigned long>::value, unsigned short,
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-            typename conditional<is_same<Ti, unsigned long long>::value,
-                                 unsigned long,
+        typename conditional<is_same_v<Ti, unsigned int>, unsigned short,
+          typename conditional<is_same_v<Ti, unsigned long long>,
+            typename conditional<numeric_limits<Ti>::digits == numeric_limits<unsigned long>::digits, unsigned int, unsigned long>::type,
+              typename conditional<is_same_v<Ti, uint128_t>, unsigned long long,
 #endif
-                                 void>::type
+      void>::type
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-            >::type
+      >::type>::type>::type
 #endif
         >::type subT;
+
     if (value & (Ti)std::numeric_limits<subT>::max()
                     << std::numeric_limits<subT>::digits)
       return most_significant_bit(
@@ -500,15 +507,13 @@ class bdig {
     return *this;
   }
 
-  typedef typename conditional<
-      is_same<T, unsigned char>::value, unsigned short,
-      typename conditional<
-          is_same<T, unsigned short>::value, unsigned long,
+typedef typename conditional<is_same<T, unsigned char>::value, unsigned short,
+          typename conditional<is_same<T, unsigned short>::value, unsigned int,
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-          typename conditional<is_same<T, unsigned long>::value,
-                               unsigned long long,
+              typename conditional<is_same<T, unsigned int>::value, unsigned long, unsigned long long>::type
+#else
+      unsigned long>::type
 #endif
-                               void>::type
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
           >::type
 #endif
@@ -522,9 +527,9 @@ class bdig {
     Ti r1 = d >> std::numeric_limits<Ti>::digits;
     Ti r0 = d & std::numeric_limits<Ti>::max();
 
-    if (r1) // overfolow
+    if (r1) // overflow
     {
-      if (index <= 0) // wole overfolow
+      if (index <= 0) // whole overflow
       {
         // TODO set overfolow value
         return;
@@ -539,7 +544,7 @@ class bdig {
   bdig &mul(const bdig &v,
             typename enable_if<is_same<Ti, unsigned char>::value ||
                                    is_same<Ti, unsigned short>::value ||
-                                   is_same<Ti, unsigned long>::value,
+                                   is_same<Ti, unsigned int>::value,
                                Ti>::type = 0) {
     bdig result;
     for (int v_i = isz - 1; v_i >= v.most_significant_index(); v_i--) {
@@ -570,7 +575,7 @@ class bdig {
   template <class Ti>
   bdig &
   mul(const bdig &v,
-      typename enable_if<is_same<Ti, unsigned long long>::value, Ti>::type =
+      typename enable_if<is_same<Ti, unsigned long long>::value || is_same<Ti, uint128_t>::value, Ti>::type =
           0) {
     CRTHEAPOBJ(multiplicant, v);
     *multiplicant = (*multiplicant).abs();
@@ -611,6 +616,9 @@ class bdig {
       (*multiplicant).shrb(1);
     }
 
+    if (&v == this) {
+      is_negative = store_is_negative;
+    }
     is_negative = store_is_negative != v.is_negative;
     return *this;
   }
@@ -655,14 +663,18 @@ class bdig {
   }
   template <class Ti>
   Ti _toll(
-      typename enable_if<std::numeric_limits<Ti>::is_integer, Ti>::type = 0) {
+      typename enable_if<std::numeric_limits<Ti>::is_integer && !is_same<Ti,T>::value, Ti>::type = 0) {
     Ti result = 0;
-    for (unsigned i = 0; i < isz; i++) {
+    for (unsigned i = isz - numeric_limits<Ti>::digits/numeric_limits<T>::digits; i < isz; i++) {
       result += integer[i];
       if (i < isz - 1)
         result <<= std::numeric_limits<T>::digits; // UB if Ti == T !!!
     }
     return result;
+  }
+  template <class Ti>
+  Ti _toll(typename enable_if<numeric_limits<Ti>::is_integer && is_same<Ti,T>::value, Ti>::type = 0) {
+    return integer[isz - 1];
   }
   inline bool sum_sop(const int idx, const bdig &v, bool c) {
     if (v.integer[idx] == 0 && !c)
@@ -783,9 +795,21 @@ bdig sqrt() const {
   bdig res;
   bdig v = *this;
   v = v.prec_up();
-  bdig bit = 1;
-  bit = bit.prec_down();
-  bit <<= (isz - v.most_significant_index()) * std::numeric_limits<T>::digits;
+  bdig bit;
+  // bit = bit.prec_down();
+  if (!v.most_significant_index()) {
+    int msb = v.most_significant_bit(v.integer[0]);
+    if (msb + 1 == std::numeric_limits<T>::digits - 1){
+      // Overflow
+      return res;
+    }
+    bit.set_bit(0, false);
+    bit.set_bit((msb/2 + 1) * 2 + ((isz - 1) * std::numeric_limits<T>::digits));
+  } else {
+    int msb = v.most_significant_bit(v.integer[v.most_significant_index()]);
+    bit.set_bit(((isz - v.most_significant_index()) * std::numeric_limits<T>::digits));
+    // bit <<= (isz - v.most_significant_index()) * std::numeric_limits<T>::digits;
+  }
 
   while (bit > v)
     bit >>= 2;
@@ -1328,13 +1352,15 @@ bdig &operator=(const char *pstr) {
   }
   return *this;
 }
+
 operator std::string() const {
   std::string str(digits + prec +
                       std::numeric_limits<
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-                          long long
+                            uint128_t
+                          //unsigned long long
 #else
-                            long
+                          unsigned long
 #endif
                           >::digits10 +
                       2,
@@ -1345,24 +1371,27 @@ operator std::string() const {
   bdig tmp10 = 10;
   std::size_t d10 = std::numeric_limits<
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-      long long
+      uint128_t
+      //unsigned long long
 #else
-        long
+      unsigned long
 #endif
       >::digits10;
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-  if (isz * sizeof(T) >= sizeof(long long))
-    d10 = std::numeric_limits<long long>::digits10;
+  if (isz * sizeof(T) >= sizeof(uint128_t))
+    d10 = std::numeric_limits<uint128_t>::digits10;
+  else if (isz * sizeof(T) >= sizeof(unsigned long long))
+    d10 = std::numeric_limits<unsigned long long>::digits10;
   else
 #endif
-      if (isz * sizeof(T) >= sizeof(long))
-    d10 = std::numeric_limits<long>::digits10;
-  else if (isz * sizeof(T) >= sizeof(int))
-    d10 = std::numeric_limits<int>::digits10;
-  else if (isz * sizeof(T) >= sizeof(short))
-    d10 = std::numeric_limits<short>::digits10;
-  else if (isz * sizeof(T) >= sizeof(char))
-    d10 = std::numeric_limits<char>::digits10;
+      if (isz * sizeof(T) >= sizeof(unsigned long))
+    d10 = std::numeric_limits<unsigned long>::digits10;
+  else if (isz * sizeof(T) >= sizeof(unsigned int))
+    d10 = std::numeric_limits<unsigned int>::digits10;
+  else if (isz * sizeof(T) >= sizeof(unsigned short))
+    d10 = std::numeric_limits<unsigned short>::digits10;
+  else if (isz * sizeof(T) >= sizeof(unsigned char))
+    d10 = std::numeric_limits<unsigned char>::digits10;
   else
     d10 = 2;
   tmp10 = tmp10.prec_down();
@@ -1372,19 +1401,35 @@ operator std::string() const {
     bdig remainder;
     tmp = tmp.div(tmp10, &remainder);
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-    unsigned long long c = remainder._toll<unsigned long long>();
-    std::string d = std::to_string(c);
+    // unsigned long long c = remainder._toll<unsigned long long>();
+    // std::string d = std::to_string(c);
+    uint128_t div = 1;
+    d10 = std::numeric_limits<unsigned long long>::digits10;
+    for (int i = 0; i < d10; i++)
+      div *= 10;
+    uint128_t c = remainder._toll<uint128_t>();
+    std::vector<unsigned long long> vals;
+    for (int i = 0; i < 2 || c; i++) {
+      vals.push_back(c % div);
+      c /= div;
+    }
+    std::string d;
+    std::for_each(vals.begin(), vals.end(), [&](auto& val){
+      d = std::to_string(val);
 #else
       unsigned long c = remainder._toll<unsigned long>();
       std::string d(d10 + 1, 0);
-      sprintf(&d[0], "%lu", c);
+      sprintf(&d[0], "%lu", c);l
       d = d.data();
 #endif
     std::size_t dl = d.length();
     if (dl < d10)
-      d = std::string(d10 - dl, '0') + d;
+       d = std::string(d10 - dl, '0') + d;
     std::reverse(d.begin(), d.end());
     str += d;
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    });
+#endif
   }
   if (str.length()) {
     size_t pos = str.find_last_not_of('0');
@@ -1404,10 +1449,14 @@ operator std::string() const {
     str.insert(str.begin(), '-');
   return str;
 }
-void set_bit(int number) {
+void set_bit(int number, bool val = true) {
   int pos = isz - (number / std::numeric_limits<T>::digits) - 1;
   T mask = ((T)1 << (number % std::numeric_limits<T>::digits));
-  integer.set(pos, integer[pos] | mask);
+  if (val) {
+    integer.set(pos, integer[pos] | mask);
+  } else {
+    integer.set(pos, integer[pos] & ~mask);
+  }
 }
 int get_bit(int number) const {
   int pos = isz - (number / std::numeric_limits<T>::digits) - 1;

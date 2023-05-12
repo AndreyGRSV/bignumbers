@@ -1,7 +1,3 @@
-#include <Windows.h>
-#undef max
-#undef min
-
 #include "../bdig.hpp"
 #include <array>
 #include <iostream>
@@ -1198,7 +1194,7 @@ public:
 template<typename T>
 void CalculatePrime(const CalculateParams& params) {
     T prime;
-    
+
     ::std::random_device rd;
     ::std::default_random_engine e1(rd());
     long long l_min = 1000000000000000000L;
@@ -1237,10 +1233,11 @@ void CalculatePrime(const CalculateParams& params) {
         if (pr) {
             MillerRabinTest <T>test;
             std::cout << std::endl << "------------------ MillerRabinTest.isprime(" << params.test_iterations << ") ----------------------" << std::endl;
+            // if ( prime.is_prime() ) {
             if (test.isprime(prime, params.test_iterations)) {
                 break;
             }
-            
+
             restart_cnt++;
         }
         prime += 2;
@@ -1289,22 +1286,17 @@ int main(int argC, char** argV) {
 
     if (!gParams.processing(argC, argV))
         return 1;
- 
-    SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
-    auto result = SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    if (result != TRUE) {
-        std::cout << "SetThreadPriority error" << std::endl;
-    }
 
+    using elem_type = sag::uint128_t;
     if (bits512 >= pr.bits) {
-        CalculatePrime<::sag::bdig<digits512 * 2>>(pr);
+        CalculatePrime<::sag::bdig<digits512 * 2,0,elem_type>>(pr);
     } else if (bits1024 >= pr.bits) {
-        CalculatePrime<::sag::bdig<digits1024 * 2>>(pr);
+        CalculatePrime<::sag::bdig<digits1024 * 2,0,elem_type>>(pr);
     } else if (bits2048 >= pr.bits) {
-        CalculatePrime<::sag::bdig<digits2048 * 2>>(pr);
+        CalculatePrime<::sag::bdig<digits2048 * 2,0,elem_type>>(pr);
     } else if (bits4096 >= pr.bits) {
-        CalculatePrime<::sag::bdig<digits4096 * 2>>(pr);
+        CalculatePrime<::sag::bdig<digits4096 * 2,0,elem_type>>(pr);
     } else {
         std::cout << "Bits should be less or equivalent to 4096" << std::endl;
     }
