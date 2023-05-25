@@ -1,27 +1,38 @@
 ﻿#include "../bdig.hpp"
 #include <vector>
 #include <string>
+#include <chrono>
 
 #include <gtest/gtest.h>
 
 
-// using element_type = unsigned long long;
-// using element_type = unsigned int;
-// using uint128_t = unsigned __int128;
 using element_type = sag::uint128_t;
 
-// Test the comparison operators of digits
-TEST(BDigTest, CompareDigits)
-{
-    const auto number_digits = 50;
+template<class T, int digits = 50>
+void TestComparision() {
+    const auto number_digits = digits;
     const auto check_value = 100;
-    using b_int = ::sag::bdig<number_digits, 0, element_type>;
-    b_int value1{check_value};
-    b_int value2{check_value};
-    int msb = value1.most_significant_bit<element_type>(0x0FFF);
-    msb = value1.most_significant_bit<unsigned long>(0x0FFF);
-    // msb = value1.most_significant_bit<unsigned short>(0x0FFF);
-    // msb = value1.most_significant_bit<unsigned char>(0xFF);
+    using b_int = ::sag::bdig<number_digits, 0, T>;
+    b_int value1{ check_value };
+    b_int value2{ check_value };
+
+    //unsigned val = 2, divider = 3;
+    //int msb = value1.most_significant_bit<unsigned>(val);
+    //unsigned inverted_div = divider;
+    //unsigned result_mask = 0;
+    //unsigned result_div = 0;
+
+    //for (int i = msb; i >= 0; i--) {
+    //    inverted_div ^= 1 << i;
+    //    result_mask |= 1 << i;
+    //}
+    //while (val >= divider) {
+    //    val += inverted_div;
+    //    val += 1;
+    //    val &= result_mask;
+    //    result_div++;
+    //}
+
     bool result = value1 == value2;
     EXPECT_EQ(result, true);
     auto digits = b_int::digits10;
@@ -34,7 +45,7 @@ TEST(BDigTest, CompareDigits)
     EXPECT_EQ(value2 == check_value, true);
     EXPECT_EQ(value2 != check_value + 1, true);
 
-    const char *max_value = "99999999999999999999999999999999999999999999999999";
+    const char* max_value = "99999999999999999999999999999999999999999999999999";
     value1 = max_value;
     result = value1 == max_value;
     EXPECT_EQ(value1 == max_value, true);
@@ -64,17 +75,37 @@ TEST(BDigTest, CompareDigits)
     EXPECT_EQ(value2 == value1, false);
 }
 
-// Test the addition operators of digits
-TEST(BDigTest, AdditionSubtractionDigits)
+// Test the comparison operators of digits
+TEST(BDigTest, CompareDigits)
 {
-    using bdig_t = ::sag::bdig<1,0,element_type>;
+    TestComparision<unsigned char>();
+    TestComparision<unsigned short>();
+    TestComparision<unsigned int>();
+    TestComparision<unsigned long long>();
+#ifdef UINT128MAX
+    TestComparision<sag::uint128_t>();
+#endif
+}
+
+template<class T, int digits = 1, int precision = 0>
+void TestAdditionSubtractionDigits() {
+    using bdig_t = ::sag::bdig<digits, 0, T>;
+    using bdigp10_t = ::sag::bdig<digits, 10, T>;
     bdig_t value1;
     bdig_t value2;
+    bdigp10_t valdp1 = "1.1234567890";
+
+    valdp1 += valdp1;
+    std::string s = valdp1;
+    EXPECT_EQ(valdp1, "2.2469135780");
+    valdp1 -= "1.1234567890";
+    EXPECT_EQ(valdp1, "1.1234567890");
+
     const auto max_value = std::numeric_limits<element_type>::max();
     value1 = max_value;
     value2 = max_value;
     bdig_t v = value1 + value2;
-    EXPECT_EQ(value1 + value2, std::numeric_limits<element_type>::max() - 1);
+    EXPECT_EQ(v, std::numeric_limits<element_type>::max() - 1);
     value1 += 1;
     EXPECT_EQ(value1, 0);
     value1 += -1;
@@ -100,17 +131,29 @@ TEST(BDigTest, AdditionSubtractionDigits)
     EXPECT_EQ(value2, 0);
 }
 
-// Test the mul/div operators of digits
-TEST(BDigTest, MulDivDigits)
+// Test the addition operators of digits
+TEST(BDigTest, AdditionSubtractionDigits)
 {
-    using bdig_t = ::sag::bdig<1,0,element_type>;
+    TestAdditionSubtractionDigits<unsigned char>();
+    TestAdditionSubtractionDigits<unsigned short>();
+    TestAdditionSubtractionDigits<unsigned int>();
+    TestAdditionSubtractionDigits<unsigned long long>();
+#ifdef UINT128MAX
+    TestAdditionSubtractionDigits<sag::uint128_t>();
+#endif
+}
+
+template<class T, int digits = 1, int precision = 0>
+void TestMulDivDigits() {
+    using bdig_t = ::sag::bdig<digits, precision, T>;
     bdig_t value1;
     bdig_t value2;
 
     // Normal positive values
     value1 = 1;
     value2 = 1;
-    EXPECT_EQ(value1 * value2, 1);
+    value1 = value1 * value2;
+    EXPECT_EQ(value1, 1);
     EXPECT_EQ(value1 * 10, 10);
     value1 *= 2;
     EXPECT_EQ(value1 * 10, 20);
@@ -149,12 +192,34 @@ TEST(BDigTest, MulDivDigits)
     EXPECT_EQ(0 / value1, 0);
 }
 
+// Test the mul/div operators of digits
+TEST(BDigTest, MulDivDigits)
+{
+    TestMulDivDigits<unsigned char, 1>();
+    TestMulDivDigits<unsigned char, 100>();
+    TestMulDivDigits<unsigned char, 100, 100>();
+    TestMulDivDigits<unsigned short, 1>();
+    TestMulDivDigits<unsigned short, 100>();
+    TestMulDivDigits<unsigned short, 100, 100>();
+    TestMulDivDigits<unsigned int, 1>();
+    TestMulDivDigits<unsigned int, 100>();
+    TestMulDivDigits<unsigned int, 100, 100>();
+    TestMulDivDigits<unsigned long long, 1>();
+    TestMulDivDigits<unsigned long long, 100>();
+    TestMulDivDigits<unsigned long long, 100, 100>();
+#ifdef UINT128MAX
+    TestMulDivDigits<sag::uint128_t, 1>();
+    TestMulDivDigits<sag::uint128_t, 100>();
+    TestMulDivDigits<sag::uint128_t, 100, 100>();
+#endif
+}
+
 class CheckVariantData
 {
-    const char *szValue;
-    const char *szParam;
+    const char *szValue = nullptr;
+    const char *szParam = nullptr;
     int iParam;
-    const char *wantResult;
+    const char *wantResult = nullptr;
 
     const int iterations = 140;
 
@@ -216,299 +281,326 @@ public:
         num = szValue;
         auto got = callFunc(num, func);
 
-        // std::cout << szValue << ":\t" << iParam << " " << szValue << "\t" << got << "\t" << wantResult << std::endl;
-        EXPECT_EQ(got, wantResult) << info << ", szValue:" << szValue << ", szParam:" << szParam << ", iParam:" << iParam;
+        EXPECT_EQ(got, wantResult) << info << ", szValue:" << (szValue ? szValue : "") << ", szParam:" << (szParam ? szParam : "") << ", iParam:" << iParam;
     }
 };
 
-auto checkAllValues = [](const std::vector<CheckVariantData> &vec, const auto num1, const auto func1, const auto num2, const auto func2, const std::string_view comment = "")
+auto checkAllValues = [](const std::vector<CheckVariantData> &vec, const auto num, const auto func, const std::string_view comment = "")
 {
-    for (const auto &d : vec)
-    {
-        d.Check(num1, func1, comment);
-        d.Check(num2, func2, comment);
+    for (const auto &d : vec) {
+        d.Check(num, func, comment);
     }
 };
 
-// Test the trigonometry functions
-TEST(BDigTest, MathFunctionsTrigonometry)
-
-{
-    const int precision = 20;
-    using bd_type1 = ::sag::bdig<1, precision, element_type>;
-    using bd_type2 = ::sag::bdig<10000, precision, element_type>;
+template<class T, int digits = 1, int precision = 20>
+void TestMathFunctionsTrigonometry() {
+    using bd_type1 = ::sag::bdig<digits, precision, T>;
     bd_type1 value1;
-    bd_type2 value2;
+
+    value1 = 0;
+    std::string c45 = value1.cos(45);
 
     value1 = -1;
-    value2 = -1;
     EXPECT_EQ(value1.abs(), 1);
-    EXPECT_EQ(value2.abs(), 1);
     value1 = 1;
-    value2 = 1;
     EXPECT_EQ(value1.abs(), 1);
-    EXPECT_EQ(value2.abs(), 1);
-
-    std::string str = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
-    std::string str_value;
-    for (int i = 0; i < 20; i++)
-        str_value += str;
-    std::string str_value2;
-    for (int i = 0; i < 2; i++)
-        str_value2 += str;
-    // std::cout << str << std::endl;
-    std::cout << "Start" << std::endl;
-    ::sag::bdig<2200,0,element_type> vbig = str_value.c_str(), vb_res, vb_divid = str.c_str(), vbig2 = str_value2.c_str();
-
-        auto begin = std::chrono::high_resolution_clock::now();
-        long op = 0;
-        for (;;) {
-            vb_res = vbig * vbig2;
-            op++;
-            auto end = std::chrono::high_resolution_clock::now();
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > 1000)
-                break;
-        }
-        std::cout << op  << " operations in second" << std::endl;
-
-    std::cout << "End" << std::endl;
-    // std::cout << (std::string)vbig << std::endl;
 
     const std::vector<CheckVariantData> checkMatrixCos{
         {0, "1.00000000000000000000"},    //  1,000000000000000
-        {10, "0.98480775301220805937"},   //  0,984807753012208
-        {20, "0.93969262078590838412"},   //  0,939692620785908
-        {30, "0.86602540378443864690"},   //  0,866025403784439
-        {45, "0.70710678118654752468"},   //  0,707106781186548
-        {60, "0.50000000000000000047"},   //  0,500000000000000
-        {90, "0.00000000000000000083"},   //  0,000000000000000
-        {100, "-0.17364817766693034795"}, // -0,173648177666930
-        {125, "-0.57357643635104609518"}, // -0,573576436351046
-        {160, "-0.93969262078590838356"}, // -0,939692620785908
-        {180, "-1.00000000000000000000"}, // -1,000000000000000
-        {200, "-0.93969262078590838412"}, // -0,939692620785908
-        {240, "-0.50000000000000000047"}, // -0,500000000000000
-        {260, "-0.17364817766693034958"}, // -0,173648177666930
-        {300, "0.49999999999999999902"},  //  0,500000000000000
-        {310, "0.64278760968653932540"},  //  0,642787609686539
-        {340, "0.93969262078590838356"},  //  0,939692620785908
-        {360, "1.00000000000000000000"},  //  1,000000000000000
-        {400, "0.76604444311897803544"},  //  0,766044443118978
-        {540, "-1.00000000000000000000"}, // -1,000000000000000
-        {1000, "0.17364817766693034795"}, //  0,173648177666931
-        {-0, "1.00000000000000000000"},   //  1,000000000000000
-        {-10, "0.98480775301220805937"},  //  0,984807753012208
-        {-90, "0.00000000000000000083"}   //  0,000000000000000
+        { 10, "0.98480775301220805937" },   //  0,984807753012208
+        { 20, "0.93969262078590838412" },   //  0,939692620785908
+        { 30, "0.86602540378443864690" },   //  0,866025403784439
+        { 45, "0.70710678118654752468" },   //  0,707106781186548
+        { 60, "0.50000000000000000047" },   //  0,500000000000000
+        { 90, "0.00000000000000000083" },   //  0,000000000000000
+        { 100, "-0.17364817766693034795" }, // -0,173648177666930
+        { 125, "-0.57357643635104609518" }, // -0,573576436351046
+        { 160, "-0.93969262078590838356" }, // -0,939692620785908
+        { 180, "-1.00000000000000000000" }, // -1,000000000000000
+        { 200, "-0.93969262078590838412" }, // -0,939692620785908
+        { 240, "-0.50000000000000000047" }, // -0,500000000000000
+        { 260, "-0.17364817766693034958" }, // -0,173648177666930
+        { 300, "0.49999999999999999902" },  //  0,500000000000000
+        { 310, "0.64278760968653932540" },  //  0,642787609686539
+        { 340, "0.93969262078590838356" },  //  0,939692620785908
+        { 360, "1.00000000000000000000" },  //  1,000000000000000
+        { 400, "0.76604444311897803544" },  //  0,766044443118978
+        { 540, "-1.00000000000000000000" }, // -1,000000000000000
+        { 1000, "0.17364817766693034795" }, //  0,173648177666931
+        { -0, "1.00000000000000000000" },   //  1,000000000000000
+        { -10, "0.98480775301220805937" },  //  0,984807753012208
+        { -90, "0.00000000000000000083" }   //  0,000000000000000
     };
 
-    checkAllValues(checkMatrixCos, value1, &bd_type1::cos, value2, &bd_type2::cos, "bdig::cos()");
+    checkAllValues(checkMatrixCos, value1, &bd_type1::cos, "bdig::cos()");
 
     const std::vector<CheckVariantData> checkMatrixSin{
         {0, "0.00000000000000000000"},     //  0,00000000000000
-        {10, "0.17364817766693034795"},    //  0,17364817766693
-        {20, "0.34202014332566873209"},    //  0,34202014332567
-        {30, "0.49999999999999999902"},    //  0,50000000000000
-        {45, "0.70710678118654752352"},    //  0,70710678118655
-        {60, "0.86602540378443864608"},    //  0,86602540378444
-        {90, "1.00000000000000000000"},    //  1,00000000000000
-        {100, "0.98480775301220805937"},   //  0,98480775301221
-        {125, "0.81915204428899178987"},   //  0,81915204428899
-        {160, "0.34202014332566873366"},   //  0,34202014332567
-        {180, "0.00000000000000000000"},   //  0,00000000000000
-        {200, "-0.34202014332566873209"},  // -0,34202014332567
-        {240, "-0.86602540378443864608"},  // -0,86602540378444
-        {260, "-0.98480775301220805910"},  // -0,98480775301221
-        {300, "-0.86602540378443864690"},  // -0,86602540378444
-        {310, "-0.76604444311897803544"},  // -0,76604444311898
-        {340, "-0.34202014332566873366"},  // -0,34202014332567
-        {360, "0.00000000000000000000"},   //  0,00000000000000
-        {400, "0.64278760968653932540"},   //  0,64278760968654
-        {540, "0.00000000000000000000"},   //  0,00000000000000
-        {1000, "-0.98480775301220805937"}, // -0,98480775301221
-        {-0, "0.00000000000000000000"},    //  0,00000000000000
-        {-10, "-0.17364817766693034958"},  // -0,17364817766693
-        {-90, "-1.00000000000000000000"},  // -1,00000000000000
-        {-540, "0.00000000000000000000"}   //  0,00000000000000
+        { 10, "0.17364817766693034795" },    //  0,17364817766693
+        { 20, "0.34202014332566873209" },    //  0,34202014332567
+        { 30, "0.49999999999999999902" },    //  0,50000000000000
+        { 45, "0.70710678118654752352" },    //  0,70710678118655
+        { 60, "0.86602540378443864608" },    //  0,86602540378444
+        { 90, "1.00000000000000000000" },    //  1,00000000000000
+        { 100, "0.98480775301220805937" },   //  0,98480775301221
+        { 125, "0.81915204428899178987" },   //  0,81915204428899
+        { 160, "0.34202014332566873366" },   //  0,34202014332567
+        { 180, "0.00000000000000000000" },   //  0,00000000000000
+        { 200, "-0.34202014332566873209" },  // -0,34202014332567
+        { 240, "-0.86602540378443864608" },  // -0,86602540378444
+        { 260, "-0.98480775301220805910" },  // -0,98480775301221
+        { 300, "-0.86602540378443864690" },  // -0,86602540378444
+        { 310, "-0.76604444311897803544" },  // -0,76604444311898
+        { 340, "-0.34202014332566873366" },  // -0,34202014332567
+        { 360, "0.00000000000000000000" },   //  0,00000000000000
+        { 400, "0.64278760968653932540" },   //  0,64278760968654
+        { 540, "0.00000000000000000000" },   //  0,00000000000000
+        { 1000, "-0.98480775301220805937" }, // -0,98480775301221
+        { -0, "0.00000000000000000000" },    //  0,00000000000000
+        { -10, "-0.17364817766693034958" },  // -0,17364817766693
+        { -90, "-1.00000000000000000000" },  // -1,00000000000000
+        { -540, "0.00000000000000000000" }   //  0,00000000000000
     };
 
-    checkAllValues(checkMatrixSin, value1, &bd_type1::sin, value2, &bd_type2::sin, "bdig::sin()");
+    checkAllValues(checkMatrixSin, value1, &bd_type1::sin, "bdig::sin()");
 }
 
-// Test the math functions
-TEST(BDigTest, MathFunctionsPowSqrt)
+// Test the trigonometry functions
+TEST(BDigTest, MathFunctionsTrigonometry)
 {
-    const int precision = 20;
-    using bd_type1 = ::sag::bdig<1, precision, element_type>;
-    using bd_type2 = ::sag::bdig<100, precision, element_type>;
+    TestMathFunctionsTrigonometry<unsigned char, 300>();
+    TestMathFunctionsTrigonometry<unsigned char, 10000>();
+    TestMathFunctionsTrigonometry<unsigned short, 300>();
+    TestMathFunctionsTrigonometry<unsigned short, 10000>();
+    TestMathFunctionsTrigonometry<unsigned int, 300>();
+    TestMathFunctionsTrigonometry<unsigned int, 10000>();
+    TestMathFunctionsTrigonometry<unsigned long long, 300>();
+    TestMathFunctionsTrigonometry<unsigned long long, 10000>();
+#ifdef UINT128MAX
+    TestMathFunctionsTrigonometry<sag::uint128_t, 300>();
+    TestMathFunctionsTrigonometry<sag::uint128_t, 10000>();
+#endif
+}
+
+template<class T, int digits = 1, int precision = 20>
+void TestMathFunctionsPowSqrt() {
+    using bd_type1 = ::sag::bdig<digits, precision, T>;
     bd_type1 value1;
-    bd_type2 value2;
 
     const std::vector<CheckVariantData> checkMatrixPow{
         {"0", 0, "1.00000000000000000000"},
-        {"1", 0, "1.00000000000000000000"},
-        {"2", 0, "1.00000000000000000000"},
-        {"0.001", 0, "1.00000000000000000000"},
-        {"0", 1, "0.00000000000000000000"},
-        {"1", 1, "1.00000000000000000000"},
-        {"2", 1, "2.00000000000000000000"},
-        {"0.001", 1, "0.00100000000000000000"},
-        {"0", 2, "0.00000000000000000000"},
-        {"1", 2, "1.00000000000000000000"},
-        {"2", 2, "4.00000000000000000000"},
-        {"0.001", 2, "0.00000100000000000000"},
-        {"10", 2, "100.00000000000000000000"},
-        {"-1", 2, "1.00000000000000000000"},
-        {"0", 3, "0.00000000000000000000"},
-        {"1", 3, "1.00000000000000000000"},
-        {"2", 3, "8.00000000000000000000"},
-        {"0.001", 3, "0.00000000100000000000"},
-        {"10", 3, "1000.00000000000000000000"},
-        {"-1", 3, "-1.00000000000000000000"},
-        {"0", -1, "0.00000000000000000000"},
-        {"1", -1, "1.00000000000000000000"},
-        {"2", -1, "0.50000000000000000000"},
-        {"0.001", -1, "1000.00000000000000000000"},
-        {"10", -1, "0.10000000000000000000"},
-        {"-1", -1, "-1.00000000000000000000"},
-        {"0", -2, "0.00000000000000000000"},
-        {"1", -2, "1.00000000000000000000"},
-        {"2", -2, "0.25000000000000000000"},
-        {"0.001", -2, "1000000.00000000000000000000"},
-        {"10", -2, "0.01000000000000000000"},
-        {"-1", -2, "1.00000000000000000000"},
+        { "1", 0, "1.00000000000000000000" },
+        { "2", 0, "1.00000000000000000000" },
+        { "0.001", 0, "1.00000000000000000000" },
+        { "0", 1, "0.00000000000000000000" },
+        { "1", 1, "1.00000000000000000000" },
+        { "2", 1, "2.00000000000000000000" },
+        { "0.001", 1, "0.00100000000000000000" },
+        { "0", 2, "0.00000000000000000000" },
+        { "1", 2, "1.00000000000000000000" },
+        { "2", 2, "4.00000000000000000000" },
+        { "0.001", 2, "0.00000100000000000000" },
+        { "10", 2, "100.00000000000000000000" },
+        { "-1", 2, "1.00000000000000000000" },
+        { "0", 3, "0.00000000000000000000" },
+        { "1", 3, "1.00000000000000000000" },
+        { "2", 3, "8.00000000000000000000" },
+        { "0.001", 3, "0.00000000100000000000" },
+        { "10", 3, "1000.00000000000000000000" },
+        { "-1", 3, "-1.00000000000000000000" },
+        { "0", -1, "0.00000000000000000000" },
+        { "1", -1, "1.00000000000000000000" },
+        { "2", -1, "0.50000000000000000000" },
+        { "0.001", -1, "1000.00000000000000000000" },
+        { "10", -1, "0.10000000000000000000" },
+        { "-1", -1, "-1.00000000000000000000" },
+        { "0", -2, "0.00000000000000000000" },
+        { "1", -2, "1.00000000000000000000" },
+        { "2", -2, "0.25000000000000000000" },
+        { "0.001", -2, "1000000.00000000000000000000" },
+        { "10", -2, "0.01000000000000000000" },
+        { "-1", -2, "1.00000000000000000000" },
     };
 
-    checkAllValues(checkMatrixPow, value1, &bd_type1::pow, value2, &bd_type2::pow, "bdig::pow()");
+    checkAllValues(checkMatrixPow, value1, &bd_type1::pow, "bdig::pow()");
 
     const std::vector<CheckVariantData> checkMatrixSqrt{
         {"0", "0.00000000000000000000"},
-        {"1", "1.00000000000000000000"},
-        {"2", "1.41421356237309504880"}, // 1,4142135623730950488016887242097
-        {"4", "2.00000000000000000000"},
-        {"25", "5.00000000000000000000"},
-        {"0.04", "0.20000000000000000000"},
-        {"0.0025", "0.05000000000000000000"},
-        {"100", "10.00000000000000000000"},
-        {"-1", "0.00000000000000000000"},
-        {"-2", "0.00000000000000000000"}, // 1,4142135623730950488016887242097
-        {"-4", "0.00000000000000000000"},
-        {"-25", "0.00000000000000000000"},
-        {"-0.04", "0.00000000000000000000"},
-        {"-0.0025", "0.00000000000000000000"},
-        {"-100", "0.00000000000000000000"},
+        { "1", "1.00000000000000000000" },
+        { "2", "1.41421356237309504880" }, // 1,4142135623730950488016887242097
+        { "4", "2.00000000000000000000" },
+        { "25", "5.00000000000000000000" },
+        { "0.04", "0.20000000000000000000" },
+        { "0.0025", "0.05000000000000000000" },
+        { "100", "10.00000000000000000000" },
+        { "-1", "0.00000000000000000000" },
+        { "-2", "0.00000000000000000000" }, // 1,4142135623730950488016887242097
+        { "-4", "0.00000000000000000000" },
+        { "-25", "0.00000000000000000000" },
+        { "-0.04", "0.00000000000000000000" },
+        { "-0.0025", "0.00000000000000000000" },
+        { "-100", "0.00000000000000000000" },
     };
 
-    checkAllValues(checkMatrixSqrt, value1, &bd_type1::sqrt, value2, &bd_type2::sqrt, "bdig::sqrt()");
+    checkAllValues(checkMatrixSqrt, value1, &bd_type1::sqrt, "bdig::sqrt()");
+}
+// Test the math functions
+TEST(BDigTest, MathFunctionsPowSqrt)
+{
+    TestMathFunctionsPowSqrt<unsigned char, 300>();
+    TestMathFunctionsPowSqrt<unsigned char, 10000>();
+    TestMathFunctionsPowSqrt<unsigned short, 300>();
+    TestMathFunctionsPowSqrt<unsigned short, 10000>();
+    TestMathFunctionsPowSqrt<unsigned int, 300>();
+    TestMathFunctionsPowSqrt<unsigned int, 10000>();
+    TestMathFunctionsPowSqrt<unsigned long long, 300>();
+    TestMathFunctionsPowSqrt<unsigned long long, 10000>();
+#ifdef UINT128MAX
+    TestMathFunctionsPowSqrt<sag::uint128_t, 300, 10>();
+    TestMathFunctionsPowSqrt<sag::uint128_t, 10000, 10>();
+#endif
+}
+
+template<class T, int digits = 300, int precision = 20>
+void TestMathFunctionsLog() {
+    using bd_type1 = ::sag::bdig<digits, precision, T>;
+    bd_type1 value1;
+
+    const std::vector<CheckVariantData> checkMatrixLog2{
+        {"0", "0.00000000000000000000"},
+        { "1", "0.00000000000000000000" },
+        { "2", "1.00000000000000000000" },
+        { "4", "2.00000000000000000000" },
+        { "25", "4.64385618977472469560" },      //  4,64385618977472
+        { "0.04", "-4.64385618977472469586" },   // -4,64385618977472
+        { "0.0025", "-8.64385618977472469586" }, // -8,64385618977473
+        { "100", "6.64385618977472469560" },     //  6,64385618977473
+        { "-1", "0.00000000000000000000" },
+        { "-2", "0.00000000000000000000" },
+        { "8", "3.00000000000000000000" },
+        { "16", "4.00000000000000000000" },
+        { "32", "5.00000000000000000000" },
+        { "64", "6.00000000000000000000" },
+        { "128", "7.00000000000000000000" },
+    };
+    checkAllValues(checkMatrixLog2, value1, &bd_type1::log2, "bdig::log2()");
+
+    const std::vector<CheckVariantData> checkMatrixLn{
+        {"0", "0.00000000000000000000"},
+        { "1", "0.00000000000000000000" },
+        { "2", "0.69314718055994530949" },       // 0,69314718055995
+        { "4", "1.38629436111989061899" },       // 1,38629436111989
+        { "25", "3.21887582486820074948" },      //  3,21887582486820
+        { "0.04", "-3.21887582486820074966" },   // -4,64385618977472
+        { "0.0025", "-5.99146454710798198765" }, // -8,64385618977473
+        { "100", "4.60517018598809136848" },     //  6,64385618977473
+        { "-1", "0.00000000000000000000" },
+        { "-2", "0.00000000000000000000" },
+        { "8", "2.07944154167983592849" },   // 2,07944154167984
+        { "16", "2.77258872223978123799" },  // 2,77258872223978
+        { "32", "3.46573590279972654749" },  // 3,46573590279973
+        { "64", "4.15888308335967185699" },  // 4,15888308335967
+        { "128", "4.85203026391961716649" }, // 4,85203026391962
+    };
+    checkAllValues(checkMatrixLn, value1, &bd_type1::ln, "bdig::ln()");
+
+    const std::vector<CheckVariantData> checkMatrixExp{
+        {"0", "1.00000000000000000000"},
+        { "1", "2.71828182845904523526" },                                                          // 2,71828182845905
+        { "2", "7.38905609893065022713" },                                                          // 7,38905609893065
+        { "4", "54.59815003314423907790" },                                                         // 54,59815003314420
+        { "25", "72004899337.38587252416135146561" },                                               // 72004899337,38590000000000
+        { "0.04", "1.04081077419238822671" },                                                       // 1,04081077419239
+        { "0.0025", "1.00250312760579508495" },                                                     // 1,00250312760580
+        { "100", "26878707852501517282815748377146333474410329.25858540110041213736" },             // 26881171418161400000000000000000000000000000,00000000000000
+        { "-1", "0.36787944117144232160" },                                                         // 0,36787944117144
+        { "-2", "0.13533528323661269189" },                                                         // 0,13533528323661
+        { "8", "2980.95798704172827474335" },                                                       // 2980,95798704173000
+        { "16", "8886110.52050787263676302336" },                                                   // 8886110,52050787000000
+        { "32", "78962960182680.69516097802263510763" },                                            // 78962960182680,70000000000000
+        { "64", "6235149080811615890313932116.50233310070025470907" },                              // 6235149080811620000000000000,00000000000000
+        { "128", "32861299618848347303262577416218686705752852894060805148.62997146378348867557" }, // 38877084059946000000000000000000000000000000000000000000,00000000000000
+    };
+    checkAllValues(checkMatrixExp, value1, &bd_type1::exp, "bdig::exp()");
+
+    const std::vector<CheckVariantData> checkMatrixExpPow{
+        {"0", "0", "1.00000000000000000000"},
+        { "-1", "0", "1.00000000000000000000" },
+        { "-1", "0.5", "1.00000000000000000000" },
+        { "2", "2", "4.00000000000000000046" },     // 4,00000000000000
+        { "2", "2.5", "5.65685424949238019608" },   // 5,65685424949238
+        { "4", "0.5", "2.00000000000000000006" },   // 2,00000000000000
+        { "4", "0.25", "1.41421356237309504876" },  // 1,41421356237309
+        { "4", "0.05", "1.07177346253629316416" },  // 1,07177346253629
+        { "4", "-0.05", "0.93303299153680741598" }, // 0,93303299153681
+    };
+    checkAllValues(checkMatrixExpPow, value1, &bd_type1::powe, "bdig::powe()");
 }
 
 // Test the math functions
 TEST(BDigTest, MathFunctionsLog)
 {
-    const int precision = 20;
+    TestMathFunctionsLog<unsigned char, 300>();
+    TestMathFunctionsLog<unsigned char, 10000>();
+    TestMathFunctionsLog<unsigned short, 300>();
+    TestMathFunctionsLog<unsigned short, 10000>();
+    TestMathFunctionsLog<unsigned int, 300>();
+    TestMathFunctionsLog<unsigned int, 10000>();
+    TestMathFunctionsLog<unsigned long long, 300>();
+    TestMathFunctionsLog<unsigned long long, 10000>();
+#ifdef UINT128MAX
+    TestMathFunctionsLog<sag::uint128_t, 300>();
+    TestMathFunctionsLog<sag::uint128_t, 10000>();
+#endif
+}
+
+template<class T, int digits = 300, int precision = 0>
+void TestMathFunctionsKaratsuba() {
+    const int precision = 0;
     using bd_type1 = ::sag::bdig<1000, precision, element_type>;
-    using bd_type2 = ::sag::bdig<10000, precision, element_type>;
     bd_type1 value1;
-    bd_type2 value2;
 
-    const std::vector<CheckVariantData> checkMatrixLog2{
-        {"0", "0.00000000000000000000"},
-        {"1", "0.00000000000000000000"},
-        {"2", "1.00000000000000000000"},
-        {"4", "2.00000000000000000000"},
-        {"25", "4.64385618977472469560"},      //  4,64385618977472
-        {"0.04", "-4.64385618977472469586"},   // -4,64385618977472
-        {"0.0025", "-8.64385618977472469586"}, // -8,64385618977473
-        {"100", "6.64385618977472469560"},     //  6,64385618977473
-        {"-1", "0.00000000000000000000"},
-        {"-2", "0.00000000000000000000"},
-        {"8", "3.00000000000000000000"},
-        {"16", "4.00000000000000000000"},
-        {"32", "5.00000000000000000000"},
-        {"64", "6.00000000000000000000"},
-        {"128", "7.00000000000000000000"},
+    const std::vector<CheckVariantData> checkMatrixKaratsuba{
+        {"0", "0", "0"},
+        { "1", "1", "1" },
+        { "1", "2", "2" },
+        { "2", "2", "4" },
+            //{"-1", "0", "0"},
+        { "-1", "-1", "1" },
+        { "100", "100", "10000" },
+        { "100000000000000000000000000000", "100000000000000000000000000000", "10000000000000000000000000000000000000000000000000000000000" },
+        { "123456789012345678901234567890", "123456789012345678901234567890",
+         "15241578753238836750495351562536198787501905199875019052100" }, // 1,5241578753238836750495351562536e+58
+        { "123456789012345678901234567890123456789012345678901234567890", "123456789012345678901234567890123456789012345678901234567890",
+         "15241578753238836750495351562566681945008382873376009755225087639153757049236500533455762536198787501905199875019052100" },
     };
-    checkAllValues(checkMatrixLog2, value1, &bd_type1::log2, value2, &bd_type2::log2, "bdig::log2()");
-
-    const std::vector<CheckVariantData> checkMatrixLn{
-        {"0", "0.00000000000000000000"},
-        {"1", "0.00000000000000000000"},
-        {"2", "0.69314718055994530949"},       // 0,69314718055995
-        {"4", "1.38629436111989061899"},       // 1,38629436111989
-        {"25", "3.21887582486820074948"},      //  3,21887582486820
-        {"0.04", "-3.21887582486820074966"},   // -4,64385618977472
-        {"0.0025", "-5.99146454710798198765"}, // -8,64385618977473
-        {"100", "4.60517018598809136848"},     //  6,64385618977473
-        {"-1", "0.00000000000000000000"},
-        {"-2", "0.00000000000000000000"},
-        {"8", "2.07944154167983592849"},   // 2,07944154167984
-        {"16", "2.77258872223978123799"},  // 2,77258872223978
-        {"32", "3.46573590279972654749"},  // 3,46573590279973
-        {"64", "4.15888308335967185699"},  // 4,15888308335967
-        {"128", "4.85203026391961716649"}, // 4,85203026391962
-    };
-    checkAllValues(checkMatrixLn, value1, &bd_type1::ln, value2, &bd_type2::ln, "bdig::ln()");
-
-    const std::vector<CheckVariantData> checkMatrixExp{
-        {"0", "1.00000000000000000000"},
-        {"1", "2.71828182845904523526"},                                                          // 2,71828182845905
-        {"2", "7.38905609893065022713"},                                                          // 7,38905609893065
-        {"4", "54.59815003314423907790"},                                                         // 54,59815003314420
-        {"25", "72004899337.38587252416135146561"},                                               // 72004899337,38590000000000
-        {"0.04", "1.04081077419238822671"},                                                       // 1,04081077419239
-        {"0.0025", "1.00250312760579508495"},                                                     // 1,00250312760580
-        {"100", "26878707852501517282815748377146333474410329.25858540110041213736"},             // 26881171418161400000000000000000000000000000,00000000000000
-        {"-1", "0.36787944117144232160"},                                                         // 0,36787944117144
-        {"-2", "0.13533528323661269189"},                                                         // 0,13533528323661
-        {"8", "2980.95798704172827474335"},                                                       // 2980,95798704173000
-        {"16", "8886110.52050787263676302336"},                                                   // 8886110,52050787000000
-        {"32", "78962960182680.69516097802263510763"},                                            // 78962960182680,70000000000000
-        {"64", "6235149080811615890313932116.50233310070025470907"},                              // 6235149080811620000000000000,00000000000000
-        {"128", "32861299618848347303262577416218686705752852894060805148.62997146378348867557"}, // 38877084059946000000000000000000000000000000000000000000,00000000000000
-    };
-    checkAllValues(checkMatrixExp, value1, &bd_type1::exp, value2, &bd_type2::exp, "bdig::exp()");
-
-    const std::vector<CheckVariantData> checkMatrixExpPow{
-        {"0", "0", "1.00000000000000000000"},
-        {"-1", "0", "1.00000000000000000000"},
-        {"-1", "0.5", "1.00000000000000000000"},
-        {"2", "2", "4.00000000000000000046"},     // 4,00000000000000
-        {"2", "2.5", "5.65685424949238019608"},   // 5,65685424949238
-        {"4", "0.5", "2.00000000000000000006"},   // 2,00000000000000
-        {"4", "0.25", "1.41421356237309504876"},  // 1,41421356237309
-        {"4", "0.05", "1.07177346253629316416"},  // 1,07177346253629
-        {"4", "-0.05", "0.93303299153680741598"}, // 0,93303299153681
-    };
-    checkAllValues(checkMatrixExpPow, value1, &bd_type1::powe, value2, &bd_type2::powe, "bdig::powe()");
+    checkAllValues(checkMatrixKaratsuba, value1, &bd_type1::Karatsuba, "bdig::Karatsuba()");
 }
 
 // Test for Karatsuba multiplication
 TEST(BDigTest, MathFunctionsKaratsuba)
 {
-    const int precision = 0;
-    using bd_type1 = ::sag::bdig<1000, precision, element_type>;
-    using bd_type2 = ::sag::bdig<1000, precision, element_type>;
-    bd_type1 value1;
-    bd_type2 value2;
-
-    const std::vector<CheckVariantData> checkMatrixKaratsuba{
-        {"0", "0", "0"},
-        {"1", "1", "1"},
-        {"1", "2", "2"},
-        {"2", "2", "4"},
-        //{"-1", "0", "0"},
-        {"-1", "-1", "1"},
-        {"100", "100", "10000"},
-        {"100000000000000000000000000000", "100000000000000000000000000000", "10000000000000000000000000000000000000000000000000000000000"},
-        {"123456789012345678901234567890", "123456789012345678901234567890",
-         "15241578753238836750495351562536198787501905199875019052100"}, // 1,5241578753238836750495351562536e+58
-        {"123456789012345678901234567890123456789012345678901234567890", "123456789012345678901234567890123456789012345678901234567890",
-         "15241578753238836750495351562566681945008382873376009755225087639153757049236500533455762536198787501905199875019052100"},
-    };
-    checkAllValues(checkMatrixKaratsuba, value1, &bd_type1::Karatsuba, value2, &bd_type2::Karatsuba, "bdig::Karatsuba()");
+    TestMathFunctionsKaratsuba<unsigned char, 1>();
+    TestMathFunctionsKaratsuba<unsigned char, 100>();
+    TestMathFunctionsKaratsuba<unsigned char, 100, 100>();
+    TestMathFunctionsKaratsuba<unsigned short, 1>();
+    TestMathFunctionsKaratsuba<unsigned short, 100>();
+    TestMathFunctionsKaratsuba<unsigned short, 100, 100>();
+    TestMathFunctionsKaratsuba<unsigned int, 1>();
+    TestMathFunctionsKaratsuba<unsigned int, 100>();
+    TestMathFunctionsKaratsuba<unsigned int, 100, 100>();
+    TestMathFunctionsKaratsuba<unsigned long long, 1>();
+    TestMathFunctionsKaratsuba<unsigned long long, 100>();
+    TestMathFunctionsKaratsuba<unsigned long long, 100, 100>();
+#ifdef UINT128MAX
+    MathFunctionsKaratsuba<sag::uint128_t, 1>();
+    MathFunctionsKaratsuba<sag::uint128_t, 100>();
+    MathFunctionsKaratsuba<sag::uint128_t, 100, 100>();
+#endif
 }
 
-TEST(BDigTest, MathFunctionsPrime)
-{
+template<class T, int digits = 300, int precision = 0>
+void TestMathFunctionsPrime() {
     unsigned PrimeNumbers[] = {
         2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
         53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
@@ -545,8 +637,8 @@ TEST(BDigTest, MathFunctionsPrime)
         4481, 4483, 4493, 4507, 4513, 4517, 4519, 4523, 4547, 4549, 4561, 4567, 4583, 4591, 4597, 4603, 4621, 4637, 4639, 4643, 4649, 4651, 4657, 4663, 4673, 4679, 4691, 4703, 4721, 4723, 4729,
         4733, 4751, 4759, 4783, 4787, 4789, 4793, 4799, 4801, 4813, 4817, 4831, 4861, 4871, 4877, 4889, 4903, 4909, 4919, 4931, 4933, 4937, 4943, 4951, 4957, 4967, 4969, 4973,
         4987, 4993, 4999, 5003, 5009, 5011, 5021, 5023, 5039, 5051, 5059, 5077, 5081, 5087, 5099, 5101, 5107, 5113, 5119, 5147, 5153, 5167, 5171, 5179, 5189, 5197, 5209, 5227, 5231, 5233, 5237, 5261, 5273, 5279, 5281, 5297,
-        5303, 5309, 5323, 5333, 5347, 5351, 5381, 5387, 5393, 5399, 5407, 5413, 5417, 5419, 5431, 5437, 5441, 5443, 5449, 5471, 5477, 5479, 5483, 5501, 5503, 5507, 5519, 5521, 5527, 5531, 5557, 5563, 5569, 5573, 5581, 5591, 5623, 5639, 5641};
-    using bd_type = ::sag::bdig<10000, 0, element_type>;
+        5303, 5309, 5323, 5333, 5347, 5351, 5381, 5387, 5393, 5399, 5407, 5413, 5417, 5419, 5431, 5437, 5441, 5443, 5449, 5471, 5477, 5479, 5483, 5501, 5503, 5507, 5519, 5521, 5527, 5531, 5557, 5563, 5569, 5573, 5581, 5591, 5623, 5639, 5641 };
+    using bd_type = ::sag::bdig<digits, precision, T>;
     bd_type value;
 
     for (std::size_t i = 0; i < sizeof(PrimeNumbers) / sizeof(unsigned); ++i)
@@ -557,7 +649,7 @@ TEST(BDigTest, MathFunctionsPrime)
         EXPECT_EQ(value.fermatest(), true);
     }
 
-    unsigned NotPrimeNumbers[] = {10, 12, 60, 1000, 1200, 2245, 3302, 5000, 5001, 102345, 3456789};
+    unsigned NotPrimeNumbers[] = { 10, 12, 60, 1000, 1200, 2245, 3302, 5000, 5001, 102345, 3456789 };
     for (std::size_t i = 0; i < sizeof(NotPrimeNumbers) / sizeof(unsigned); ++i)
     {
         value = NotPrimeNumbers[i];
@@ -589,6 +681,78 @@ TEST(BDigTest, MathFunctionsPrime)
     EXPECT_EQ(value.LucasLehmer(10), false);
 }
 
+// Test for Prime check functions
+TEST(BDigTest, MathFunctionsPrime)
+{
+    TestMathFunctionsKaratsuba<unsigned char, 100>();
+    TestMathFunctionsKaratsuba<unsigned char, 1000>();
+    TestMathFunctionsKaratsuba<unsigned short, 100>();
+    TestMathFunctionsKaratsuba<unsigned short, 1000>();
+    TestMathFunctionsKaratsuba<unsigned int, 100>();
+    TestMathFunctionsKaratsuba<unsigned int, 1000>();
+    TestMathFunctionsKaratsuba<unsigned long long, 100>();
+    TestMathFunctionsKaratsuba<unsigned long long, 1000>();
+#ifdef UINT128MAX
+    MathFunctionsKaratsuba<sag::uint128_t, 100>();
+    MathFunctionsKaratsuba<sag::uint128_t, 1000>();
+#endif
+}
+
+#include <future>
+
+template<class T, int digits>
+void PerformanceTest() {
+
+        using namespace std::chrono_literals;
+        //std::string str = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+        std::string str = "1234567890";
+        std::string str_value;
+        while (str_value.length() < digits)
+            str_value += str;
+        std::cout << "Start multiplication for length: " << str_value.length() << " digits. Type buffer bits: " << std::numeric_limits<T>::digits << std::endl;
+
+        ::sag::bdig<digits * 2, 0, T> vbig = str_value.c_str(), vb_res, vbig2 = str_value.c_str();
+        std::atomic_bool stop = false;
+
+        std::future<unsigned long long> future = std::async(std::launch::async, [&]() {
+            unsigned long long op = 0;
+            for (;;) {
+                vb_res = vbig * vbig2;
+                op++;
+                if (stop) {
+                    break;
+                }
+            }
+            return op;
+         });
+        if (std::future_status::timeout == future.wait_for(1s)) {
+            stop = true;
+        }
+
+        std::cout << future.get() << " operations in second" << std::endl;
+        std::cout << "End" << std::endl;
+}
+
+// Test for Prime check functions
+TEST(BDigTest, Performance) {
+    PerformanceTest<unsigned char, 100>();
+    PerformanceTest<unsigned char, 1000>();
+    PerformanceTest<unsigned char, 10000>();
+    PerformanceTest<unsigned short, 100>();
+    PerformanceTest<unsigned short, 1000>();
+    PerformanceTest<unsigned short, 10000>();
+    PerformanceTest<unsigned int, 100>();
+    PerformanceTest<unsigned int, 1000>();
+    PerformanceTest<unsigned int, 10000>();
+    PerformanceTest<unsigned long long, 100>();
+    PerformanceTest<unsigned long long, 1000>();
+    PerformanceTest<unsigned long long, 10000>();
+#ifdef UINT128MAX
+    PerformanceTest<sag::uint128_t, 100>();
+    PerformanceTest<sag::uint128_t, 1000>();
+    PerformanceTest<sag::uint128_t, 10000>();
+#endif
+}
 
 #ifdef TEST_PRIME_TESTS
 

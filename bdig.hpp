@@ -218,7 +218,6 @@ class bdig {
       set_bit = shr_sop(i, bits, set_bit);
     }
   }
-public:
   inline int most_significant_index() const { return integer.get_lsi(); }
 
   template <class Ti>
