@@ -6,8 +6,6 @@
 #include <gtest/gtest.h>
 
 
-using element_type = sag::uint128_t;
-
 template<class T, int digits = 50>
 void TestComparision() {
     const auto number_digits = digits;
@@ -35,8 +33,8 @@ void TestComparision() {
 
     bool result = value1 == value2;
     EXPECT_EQ(result, true);
-    auto digits = b_int::digits10;
-    EXPECT_EQ(digits, number_digits);
+    auto digits10 = b_int::digits10;
+    EXPECT_EQ(digits10, number_digits);
 
     EXPECT_EQ(value1 == "100", true);
     EXPECT_EQ(value1 == check_value, true);
@@ -101,11 +99,11 @@ void TestAdditionSubtractionDigits() {
     valdp1 -= "1.1234567890";
     EXPECT_EQ(valdp1, "1.1234567890");
 
-    const auto max_value = std::numeric_limits<element_type>::max();
+    const auto max_value = std::numeric_limits<T>::max();
     value1 = max_value;
     value2 = max_value;
     bdig_t v = value1 + value2;
-    EXPECT_EQ(v, std::numeric_limits<element_type>::max() - 1);
+    EXPECT_EQ(v, std::numeric_limits<T>::max() - 1);
     value1 += 1;
     EXPECT_EQ(value1, 0);
     value1 += -1;
@@ -296,9 +294,6 @@ template<class T, int digits = 1, int precision = 20>
 void TestMathFunctionsTrigonometry() {
     using bd_type1 = ::sag::bdig<digits, precision, T>;
     bd_type1 value1;
-
-    value1 = 0;
-    std::string c45 = value1.cos(45);
 
     value1 = -1;
     EXPECT_EQ(value1.abs(), 1);
@@ -556,8 +551,7 @@ TEST(BDigTest, MathFunctionsLog)
 
 template<class T, int digits = 300, int precision = 0>
 void TestMathFunctionsKaratsuba() {
-    const int precision = 0;
-    using bd_type1 = ::sag::bdig<1000, precision, element_type>;
+    using bd_type1 = ::sag::bdig<1000, precision, T>;
     bd_type1 value1;
 
     const std::vector<CheckVariantData> checkMatrixKaratsuba{
@@ -582,20 +576,15 @@ TEST(BDigTest, MathFunctionsKaratsuba)
 {
     TestMathFunctionsKaratsuba<unsigned char, 1>();
     TestMathFunctionsKaratsuba<unsigned char, 100>();
-    TestMathFunctionsKaratsuba<unsigned char, 100, 100>();
     TestMathFunctionsKaratsuba<unsigned short, 1>();
     TestMathFunctionsKaratsuba<unsigned short, 100>();
-    TestMathFunctionsKaratsuba<unsigned short, 100, 100>();
     TestMathFunctionsKaratsuba<unsigned int, 1>();
     TestMathFunctionsKaratsuba<unsigned int, 100>();
-    TestMathFunctionsKaratsuba<unsigned int, 100, 100>();
     TestMathFunctionsKaratsuba<unsigned long long, 1>();
     TestMathFunctionsKaratsuba<unsigned long long, 100>();
-    TestMathFunctionsKaratsuba<unsigned long long, 100, 100>();
 #ifdef UINT128MAX
     MathFunctionsKaratsuba<sag::uint128_t, 1>();
     MathFunctionsKaratsuba<sag::uint128_t, 100>();
-    MathFunctionsKaratsuba<sag::uint128_t, 100, 100>();
 #endif
 }
 
