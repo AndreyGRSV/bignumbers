@@ -57,10 +57,10 @@ const char *pE_1000 = "2.71828182845904523536028747135266249775724709369995"
 
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 
-#ifndef UINT128MAX
+#ifndef __SIZEOF_INT128__
   using uint128_t = unsigned long long;
-#else 
-    using uint128_t = unsigned __int128; 
+#else
+    using uint128_t = unsigned __int128;
 #endif
 
 using namespace std;
@@ -1318,7 +1318,7 @@ operator std::string() const {
     bdig remainder;
     tmp = tmp.div(tmp10, &remainder);
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-#ifndef UINT128MAX
+#ifndef __SIZEOF_INT128__
      unsigned long long c = remainder._toll<unsigned long long>();
      std::string d = std::to_string(c);
 #else
@@ -1348,7 +1348,7 @@ operator std::string() const {
     std::reverse(d.begin(), d.end());
     str += d;
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900) 
-#ifdef UINT128MAX
+#ifdef __SIZEOF_INT128__
   });
 #endif
 #endif

@@ -80,7 +80,7 @@ TEST(BDigTest, CompareDigits)
     TestComparision<unsigned short>();
     TestComparision<unsigned int>();
     TestComparision<unsigned long long>();
-#ifdef UINT128MAX
+#ifdef __SIZEOF_INT128__
     TestComparision<sag::uint128_t>();
 #endif
 }
@@ -136,7 +136,7 @@ TEST(BDigTest, AdditionSubtractionDigits)
     TestAdditionSubtractionDigits<unsigned short>();
     TestAdditionSubtractionDigits<unsigned int>();
     TestAdditionSubtractionDigits<unsigned long long>();
-#ifdef UINT128MAX
+#ifdef __SIZEOF_INT128__
     TestAdditionSubtractionDigits<sag::uint128_t>();
 #endif
 }
@@ -205,7 +205,7 @@ TEST(BDigTest, MulDivDigits)
     TestMulDivDigits<unsigned long long, 1>();
     TestMulDivDigits<unsigned long long, 100>();
     TestMulDivDigits<unsigned long long, 100, 100>();
-#ifdef UINT128MAX
+#ifdef __SIZEOF_INT128__
     TestMulDivDigits<sag::uint128_t, 1>();
     TestMulDivDigits<sag::uint128_t, 100>();
     TestMulDivDigits<sag::uint128_t, 100, 100>();
@@ -371,7 +371,7 @@ TEST(BDigTest, MathFunctionsTrigonometry)
     TestMathFunctionsTrigonometry<unsigned int, 10000>();
     TestMathFunctionsTrigonometry<unsigned long long, 300>();
     TestMathFunctionsTrigonometry<unsigned long long, 10000>();
-#ifdef UINT128MAX
+#ifdef __SIZEOF_INT128__
     TestMathFunctionsTrigonometry<sag::uint128_t, 300>();
     TestMathFunctionsTrigonometry<sag::uint128_t, 10000>();
 #endif
@@ -450,9 +450,9 @@ TEST(BDigTest, MathFunctionsPowSqrt)
     TestMathFunctionsPowSqrt<unsigned int, 10000>();
     TestMathFunctionsPowSqrt<unsigned long long, 300>();
     TestMathFunctionsPowSqrt<unsigned long long, 10000>();
-#ifdef UINT128MAX
-    TestMathFunctionsPowSqrt<sag::uint128_t, 300, 10>();
-    TestMathFunctionsPowSqrt<sag::uint128_t, 10000, 10>();
+#ifdef __SIZEOF_INT128__
+    TestMathFunctionsPowSqrt<sag::uint128_t, 300>();
+    TestMathFunctionsPowSqrt<sag::uint128_t, 10000>();
 #endif
 }
 
@@ -543,7 +543,7 @@ TEST(BDigTest, MathFunctionsLog)
     TestMathFunctionsLog<unsigned int, 10000>();
     TestMathFunctionsLog<unsigned long long, 300>();
     TestMathFunctionsLog<unsigned long long, 10000>();
-#ifdef UINT128MAX
+#ifdef __SIZEOF_INT128__
     TestMathFunctionsLog<sag::uint128_t, 300>();
     TestMathFunctionsLog<sag::uint128_t, 10000>();
 #endif
@@ -582,9 +582,9 @@ TEST(BDigTest, MathFunctionsKaratsuba)
     TestMathFunctionsKaratsuba<unsigned int, 100>();
     TestMathFunctionsKaratsuba<unsigned long long, 1>();
     TestMathFunctionsKaratsuba<unsigned long long, 100>();
-#ifdef UINT128MAX
-    MathFunctionsKaratsuba<sag::uint128_t, 1>();
-    MathFunctionsKaratsuba<sag::uint128_t, 100>();
+#ifdef __SIZEOF_INT128__
+    TestMathFunctionsKaratsuba<sag::uint128_t, 1>();
+    TestMathFunctionsKaratsuba<sag::uint128_t, 100>();
 #endif
 }
 
@@ -681,9 +681,9 @@ TEST(BDigTest, MathFunctionsPrime)
     TestMathFunctionsKaratsuba<unsigned int, 1000>();
     TestMathFunctionsKaratsuba<unsigned long long, 100>();
     TestMathFunctionsKaratsuba<unsigned long long, 1000>();
-#ifdef UINT128MAX
-    MathFunctionsKaratsuba<sag::uint128_t, 100>();
-    MathFunctionsKaratsuba<sag::uint128_t, 1000>();
+#ifdef __SIZEOF_INT128__
+    TestMathFunctionsKaratsuba<sag::uint128_t, 100>();
+    TestMathFunctionsKaratsuba<sag::uint128_t, 1000>();
 #endif
 }
 
@@ -736,7 +736,7 @@ TEST(BDigTest, Performance) {
     PerformanceTest<unsigned long long, 100>();
     PerformanceTest<unsigned long long, 1000>();
     PerformanceTest<unsigned long long, 10000>();
-#ifdef UINT128MAX
+#ifdef __SIZEOF_INT128__
     PerformanceTest<sag::uint128_t, 100>();
     PerformanceTest<sag::uint128_t, 1000>();
     PerformanceTest<sag::uint128_t, 10000>();
