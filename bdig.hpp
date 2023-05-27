@@ -13,12 +13,6 @@
 #include <string>
 #include <vector>
 
-#ifdef TEST_SUPPORT_FUNC
-#include <fstream>
-#include <iostream>
-
-#endif
-
 namespace sag {
 const char *pPI_1000 = "3.14159265358979323846264338327950288419716939937510"
                        "58209749445923078164062862089986280348253421170679"
@@ -66,7 +60,7 @@ const char *pE_1000 = "2.71828182845904523536028747135266249775724709369995"
 #ifndef __SIZEOF_INT128__
   using uint128_t = unsigned long long;
 #else
-    using uint128_t = unsigned __int128;
+  using uint128_t = unsigned __int128;
 #endif
 
 using namespace std;
@@ -126,6 +120,7 @@ class bdig {
   static const typename enable_if<!std::numeric_limits<T>::is_signed,
                                   unsigned int>::type isz =
       ((prec * 2 + digits) / (std::numeric_limits<T>::digits * 301 / 1000)) + 1;
+
   template <class Tb, unsigned int size = isz> class buffer {
     Tb _buffer[size];
     unsigned int least_significant_index;
@@ -331,26 +326,6 @@ typedef
       (*divisor).shlb(di - ri);
       (*shift).shlb(di - ri);
     }
-    const T &operator[](const unsigned idx) const {
-      if (idx < size)
-        return _buffer[idx];
-      return _buffer[0]; //
-    }
-    inline void set(const unsigned idx, const Tb _v) {
-      if (idx < size) {
-        _buffer[idx] = _v;
-        if (idx < least_significant_index && _v)
-          least_significant_index = idx;
-        if (idx == least_significant_index && !_v && idx < size - 1)
-          least_significant_index = idx + 1;
-      }
-    }
-    inline void copy(int to_idx, const Tb *from, int sz) {
-      for (int i = 0; i < sz; i++)
-        set(to_idx++, from[i]);
-    }
-    inline unsigned int get_lsi() const { return least_significant_index; }
-  };
 
     while (*remainder >= v) {
       while (!(*remainder).integer[ri] && ri < isz) {
@@ -1295,6 +1270,7 @@ bdig &operator=(const char *pstr) {
   }
   return *this;
 }
+
 operator std::string() const {
   std::string str(digits + prec +
                       std::numeric_limits<
