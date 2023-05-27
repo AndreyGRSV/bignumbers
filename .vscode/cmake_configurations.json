@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "Debug",
+      "buildType": "Debug",
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "Release",
+      "buildType": "Release"
+    },
+    {
+      "name": "RelWithDebInfo",
+      "buildType": "RelWithDebInfo"
+    },
+    {
+      "name": "MinSizeRel",
+      "buildType": "MinSizeRel"
+    }
+  ]
+}
