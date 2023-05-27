@@ -36,41 +36,51 @@ void TestComparision() {
     auto digits10 = b_int::digits10;
     EXPECT_EQ(digits10, number_digits);
 
-    EXPECT_EQ(value1 == "100", true);
-    EXPECT_EQ(value1 == check_value, true);
-    EXPECT_EQ(value1 != check_value + 1, true);
-    EXPECT_EQ(value2 == "100", true);
-    EXPECT_EQ(value2 == check_value, true);
-    EXPECT_EQ(value2 != check_value + 1, true);
+  EXPECT_EQ(value1 == "100", true);
+  EXPECT_EQ(value1 == check_value, true);
+  EXPECT_EQ(value1 != check_value + 1, true);
+  EXPECT_EQ(value2 == "100", true);
+  EXPECT_EQ(value2 == check_value, true);
+  EXPECT_EQ(value2 != check_value + 1, true);
+  value1 = "-100";
+  EXPECT_EQ(value1, -100);
 
     const char* max_value = "99999999999999999999999999999999999999999999999999";
     value1 = max_value;
     result = value1 == max_value;
     EXPECT_EQ(value1 == max_value, true);
 
-    value2 = max_value;
-    result = value2 == max_value;
-    EXPECT_EQ(value2 == max_value, true);
-    EXPECT_EQ(value1 == value2, true);
+  valueWithPoint = "1'222'333";
+  EXPECT_EQ(valueWithPoint, 1222333);
 
-    value1 = -1;
-    EXPECT_EQ(value1 == -1, true);
-    EXPECT_EQ(value1 == value2, false);
-    EXPECT_EQ(value1 != value2, true);
-    EXPECT_EQ(value1 < value2, true);
-    EXPECT_EQ(value1 <= value2, true);
-    EXPECT_EQ(value2 > value1, true);
-    EXPECT_EQ(value2 >= value1, true);
-    EXPECT_EQ(value2 != 0, true);
-    EXPECT_EQ(value2 >= 0, true);
+  const char *max_value = "99999999999999999999999999999999999999999999999999";
+  value1 = max_value;
+  result = value1 == max_value;
+  EXPECT_EQ(result, true);
 
-    value1 = value2;
-    value1 -= 1;
-    EXPECT_EQ(value2 >= value1, true);
+  value2 = max_value;
+  result = value2 == max_value;
+  EXPECT_EQ(result, true);
+  EXPECT_EQ(value1 == value2, true);
 
-    value1 = -1;
-    value2 = 1;
-    EXPECT_EQ(value2 == value1, false);
+  value1 = -1;
+  EXPECT_EQ(value1 == -1, true);
+  EXPECT_EQ(value1 == value2, false);
+  EXPECT_EQ(value1 != value2, true);
+  EXPECT_EQ(value1 < value2, true);
+  EXPECT_EQ(value1 <= value2, true);
+  EXPECT_EQ(value2 > value1, true);
+  EXPECT_EQ(value2 >= value1, true);
+  EXPECT_EQ(value2 != 0, true);
+  EXPECT_EQ(value2 >= 0, true);
+
+  value1 = value2;
+  value1 -= 1;
+  EXPECT_EQ(value2 >= value1, true);
+
+  value1 = -1;
+  value2 = 1;
+  EXPECT_EQ(value2 == value1, false);
 }
 
 // Test the comparison operators of digits
@@ -117,16 +127,27 @@ void TestAdditionSubtractionDigits() {
     value1 -= 1;
     EXPECT_EQ(value1, 0);
 
-    value1 = max_value;
-    value2 = max_value;
-    value2 = value1 - max_value;
-    EXPECT_EQ(value2, 0);
+  value1 = max_value;
+  value2 = max_value;
+  value2 = value1 - max_value;
+  EXPECT_EQ(value2, 0);
 
-    value2 = max_value - max_value;
-    EXPECT_EQ(value2, 0);
+  value2 = max_value - max_value;
+  EXPECT_EQ(value2, 0);
 
-    value2 = max_value - value1;
-    EXPECT_EQ(value2, 0);
+  value2 = max_value - value1;
+  EXPECT_EQ(value2, 0);
+
+  value1 = -1;
+  value1 = -value1;
+  EXPECT_EQ(value1, 1);
+  value1 = -value1;
+  EXPECT_EQ(value1, -1);
+
+  value1 = 0;
+  value1 = -value1;
+  value1 -= 1;
+  EXPECT_EQ(value1, -1);
 }
 
 // Test the addition operators of digits
@@ -156,38 +177,38 @@ void TestMulDivDigits() {
     value1 *= 2;
     EXPECT_EQ(value1 * 10, 20);
 
-    value1 = 1;
-    value2 = 1;
-    EXPECT_EQ(value1 / value2, 1);
-    EXPECT_EQ(10 / value1, 10);
-    value1 *= 2;
-    EXPECT_EQ(20 / value1, 10);
+  value1 = 1;
+  value2 = 1;
+  EXPECT_EQ(value1 / value2, 1);
+  EXPECT_EQ(10 / value1, 10);
+  value1 *= 2;
+  EXPECT_EQ(20 / value1, 10);
 
-    // Normal negative values
-    value1 = -1;
-    value2 = -1;
-    EXPECT_EQ(value1 * value2, 1);
-    EXPECT_EQ(value1 * -10, 10);
-    EXPECT_EQ(value1 * 10, -10);
-    EXPECT_EQ(value1 * -100, 100);
-    EXPECT_EQ(value1 * 100, -100);
+  // Normal negative values
+  value1 = -1;
+  value2 = -1;
+  EXPECT_EQ(value1 * value2, 1);
+  EXPECT_EQ(value1 * -10, 10);
+  EXPECT_EQ(value1 * 10, -10);
+  EXPECT_EQ(value1 * -100, 100);
+  EXPECT_EQ(value1 * 100, -100);
 
-    // Manipulation with zero
+  // Manipulation with zero
 
-    value1 = 0;
-    value2 = 0;
-    EXPECT_EQ(value1 * value2, 0);
-    value1 = 1;
-    EXPECT_EQ(value1 * 0, 0);
-    EXPECT_EQ(0 * value1, 0);
-    // Dividing by zero is not trigger exception for working
-    // in embedded systems without stopping.
-    // Value of dividend is returned.
-    value1 = value1 / value2;
-    EXPECT_EQ(value1 / value2, value1);
-    EXPECT_EQ(value1 / 0, value1);
-    EXPECT_EQ(value2 / 0, 0);
-    EXPECT_EQ(0 / value1, 0);
+  value1 = 0;
+  value2 = 0;
+  EXPECT_EQ(value1 * value2, 0);
+  value1 = 1;
+  EXPECT_EQ(value1 * 0, 0);
+  EXPECT_EQ(0 * value1, 0);
+  // Dividing by zero is not trigger exception for working
+  // in embedded systems without stopping.
+  // Value of dividend is returned.
+  value1 = value1 / value2;
+  EXPECT_EQ(value1 / value2, value1);
+  EXPECT_EQ(value1 / 0, value1);
+  EXPECT_EQ(value2 / 0, 0);
+  EXPECT_EQ(0 / value1, 0);
 }
 
 // Test the mul/div operators of digits
@@ -219,56 +240,99 @@ class CheckVariantData
     int iParam;
     const char *wantResult = nullptr;
 
-    const int iterations = 140;
+  value = 1;
+  value = value << 1;
+  EXPECT_EQ(value, 2);
+  value = 4;
+  value = value >> 1;
+  EXPECT_EQ(value, 2);
 
-    template <class T, class F>
-    std::string callFunc(const T num, const F func,
-                         typename std::enable_if_t<std::is_same_v<F, T (T::*)(int, int) const>, F> = 0) const
-    {
-        return (num.*func)(iParam, iterations);
-    }
+  ::sag::bdig<10> value1;
+  value1 = 0x1000;
+  value1 >>= 1;
+  EXPECT_EQ(value1, 0x800);
 
-    template <class T, class F>
-    std::string callFunc(const T num, const F func,
-                         typename std::enable_if_t<std::is_same_v<F, T &(T::*)(int, bool)>, F> = 0) const
-    {
-        auto numtmp = num;
-        return (numtmp.*func)(iParam, true);
-    }
+  value1 = 0x1000;
+  value1 <<= 1;
+  EXPECT_EQ(value1, 0x2000);
 
-    template <class T, class F>
-    std::string callFunc(const T num, const F func,
-                         typename std::enable_if_t<std::is_same_v<F, T (T::*)() const>, F> = 0) const
-    {
-        return (num.*func)();
-    }
+  value1 = 0x10000000;
+  value1 >>= 17;
+  EXPECT_EQ(value1, 0x800);
 
-    template <class T, class F>
-    std::string callFunc(const T num, const F func,
-                         typename std::enable_if_t<std::is_same_v<F, T (T::*)(const T &, int) const>, F> = 0) const
-    {
-        return (num.*func)(szValue, iterations);
-    }
+  value1 = 0x800;
+  value1 <<= 17;
+  EXPECT_EQ(value1, 0x10000000);
+}
 
-    template <class T, class F>
-    std::string callFunc(const T num, const F func,
-                         typename std::enable_if_t<std::is_same_v<F, T (T::*)(const T &, const T &, int) const>, F> = 0) const
-    {
-        return (num.*func)(szValue, szParam, iterations);
-    }
+class CheckVariantData {
+  const char *szValue = "";
+  const char *szParam = "";
+  int iParam = 0;
+  const char *wantResult = "";
 
-    template <class T, class F>
-    std::string callFunc(const T num, const F func,
-                         typename std::enable_if_t<std::is_same_v<F, T (T::*)(const T &, const T &) const>, F> = 0) const
-    {
-        return (num.*func)(szValue, szParam);
-    }
+  const int iterations = 140;
+
+  template <class T, class F>
+  std::string callFunc(
+      const T num, const F func,
+      typename std::enable_if_t<std::is_same_v<F, T (T::*)(int, int) const>,
+                                F> = 0) const {
+    return (num.*func)(iParam, iterations);
+  }
+
+  template <class T, class F>
+  std::string callFunc(
+      const T num, const F func,
+      typename std::enable_if_t<std::is_same_v<F, T &(T::*)(int, bool)>, F> =
+          0) const {
+    auto numtmp = num;
+    return (numtmp.*func)(iParam, true);
+  }
+
+  template <class T, class F>
+  std::string
+  callFunc(const T num, const F func,
+           typename std::enable_if_t<std::is_same_v<F, T (T::*)() const>, F> =
+               0) const {
+    return (num.*func)();
+  }
+
+  template <class T, class F>
+  std::string callFunc(
+      const T num, const F func,
+      typename std::enable_if_t<
+          std::is_same_v<F, T (T::*)(const T &, int) const>, F> = 0) const {
+    return (num.*func)(szValue, iterations);
+  }
+
+  template <class T, class F>
+  std::string callFunc(
+      const T num, const F func,
+      typename std::enable_if_t<
+          std::is_same_v<F, T (T::*)(const T &, const T &, int) const>, F> =
+          0) const {
+    return (num.*func)(szValue, szParam, iterations);
+  }
+
+  template <class T, class F>
+  std::string
+  callFunc(const T num, const F func,
+           typename std::enable_if_t<
+               std::is_same_v<F, T (T::*)(const T &, const T &) const>, F> =
+               0) const {
+    return (num.*func)(szValue, szParam);
+  }
 
 public:
-    CheckVariantData(int param, const char *want) : szValue(""), iParam(param), wantResult(want) {}
-    CheckVariantData(const char *param1, int param2, const char *want) : szValue(param1), iParam(param2), wantResult(want) {}
-    CheckVariantData(const char *param1, const char *want) : szValue(param1), iParam(0), wantResult(want) {}
-    CheckVariantData(const char *param1, const char *param2, const char *want) : szValue(param1), szParam(param2), iParam(0), wantResult(want) {}
+  CheckVariantData(int param, const char *want)
+      : iParam(param), wantResult(want) {}
+  CheckVariantData(const char *param1, int param2, const char *want)
+      : szValue(param1), iParam(param2), wantResult(want) {}
+  CheckVariantData(const char *param1, const char *want)
+      : szValue(param1), wantResult(want) {}
+  CheckVariantData(const char *param1, const char *param2, const char *want)
+      : szValue(param1), szParam(param2), wantResult(want) {}
 
     template <class T, class F>
     void Check(T num, const F func, const std::string_view& info) const
@@ -276,8 +340,8 @@ public:
         // static_assert(std::is_same_v<F1, decltype(T1(T1::*)())>, "func1 is not a sapported. T1(T1::*)()");
         static_assert(std::is_member_function_pointer_v<F>, "T::F func is not a member function.");
 
-        num = szValue;
-        auto got = callFunc(num, func);
+    num = szValue;
+    auto got = callFunc(num, func);
 
         EXPECT_EQ(got, wantResult) << info << ", szValue:" << (szValue ? szValue : "") << ", szParam:" << (szParam ? szParam : "") << ", iParam:" << iParam;
     }
@@ -647,16 +711,16 @@ void TestMathFunctionsPrime() {
         EXPECT_EQ(value.fermatest(), false);
     }
 
-    // M_1 = 1        (4)
-    // M_2 = 3        (5)
-    // M_3 = 7        (6)
-    // M_4 = 3*5      (7)
-    // M_5 = 31       (8)
-    // M_6 = 3*3*7    (9)
-    // M_7 = 127      (10)
-    // M_8 = 3*5*17   (11)
-    // M_9 = 7*73     (12)
-    // M_(10) = 3*11*31
+  // M_1 = 1        (4)
+  // M_2 = 3        (5)
+  // M_3 = 7        (6)
+  // M_4 = 3*5      (7)
+  // M_5 = 31       (8)
+  // M_6 = 3*3*7    (9)
+  // M_7 = 127      (10)
+  // M_8 = 3*5*17   (11)
+  // M_9 = 7*73     (12)
+  // M_(10) = 3*11*31
 
     EXPECT_EQ(value.LucasLehmer(1), true);
     EXPECT_EQ(value.LucasLehmer(2), true);
