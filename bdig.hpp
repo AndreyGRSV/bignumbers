@@ -301,8 +301,138 @@ typedef
     this->shr(bit_least % std::numeric_limits<T>::digits);
     return *this;
   }
-    
-  bdig &div(const bdig &v, bdig *premainder = NULL) {
+
+  bdig& div(const bdig& v, bdig* premainder = NULL) {
+
+      if (!v)
+          return *this;
+
+      CRTHEAPOBJNP(remainder);
+      CRTHEAPOBJNP(remainder_tmp);
+      CRTHEAPOBJNP(borrow);
+      CRTHEAPOBJ(divisor, v);
+      CRTHEAPOBJ(result, 0);
+
+      bool store_is_negative = is_negative;
+      is_negative = false;
+      *remainder = *this;
+      integer.clear();
+
+      *divisor = (*divisor).abs();
+      // Shift Divider to Value max significant index
+      unsigned ri = (*remainder).most_significant_index();
+      unsigned di = (*divisor).most_significant_index();
+      unsigned shift = 0;
+      if (ri < di) {
+          shift = di - ri;
+          (*divisor).shlb(shift);
+      }
+      // If Divider > Value Shit Divider back to one position(In current sample is not needeed)
+      if ((*divisor) > (*remainder) && shift) {
+          (*divisor).shrb(1);
+          shift--;
+      }
+      unsigned index = isz - 1;
+      if (ri == index && di == index) {
+          (*result).integer.set(index, (*remainder).integer[index] / (*divisor).integer[index]);
+      }
+      else {
+          const upT BaseValue = std::numeric_limits<T>::max() + 1;
+              while ((*divisor) <= (*remainder)) {
+
+                  // Calculate Root Result
+                  upT root_result = 0, root_remainder = 0, root_remainder_index = 0;
+                  unsigned current_index = (*remainder).most_significant_index();
+                  if (current_index < (*divisor).most_significant_index()) {
+                      root_result = (*remainder).integer[current_index] * BaseValue;
+                      current_index++;
+                  }
+                  root_result += (*remainder).integer[current_index];
+                  root_remainder = root_result % (*divisor).integer[current_index];
+                  root_result /= (*divisor).integer[current_index];
+
+                  (*result).integer.set(isz - shift - 1, root_result);
+                  (*remainder_tmp).integer.set(current_index, root_remainder);
+
+                  current_index++;
+                  while (current_index < isz) {
+
+                      auto fullDivisorValue = [&](unsigned index) {
+                          return root_result * (*divisor).integer[index] - (*remainder).integer[index] + (*borrow).integer[index];
+                      };
+                      auto fullDividendValue = [&](unsigned index, T borrow_value) {
+                          return  borrow_value * BaseValue + (*remainder).integer[index] - (*borrow).integer[index];
+                      };
+
+                      T borrow_value = fullDivisorValue(current_index) / BaseValue;
+                      while (fullDividendValue(current_index, borrow_value) < fullDivisorValue(current_index)) {
+                          borrow_value++;
+                      }
+
+                      if ((*borrow).integer[current_index - 1] != borrow_value) {
+                          current_index--;
+                          (*borrow).integer.set(current_index, borrow_value);
+
+                          if (current_index == (*divisor).most_significant_index() && root_remainder != 0) {
+                              root_result = 0;
+                              current_index = (*remainder).most_significant_index();
+                              if (current_index < (*divisor).most_significant_index()) {
+                                  root_result = (*remainder).integer[current_index] * BaseValue;
+                                  current_index++;
+                              }
+                              root_result += (*remainder).integer[current_index] - (*borrow).integer[current_index];
+                              root_remainder = root_result % (*divisor).integer[current_index];
+                              root_result /= (*divisor).integer[current_index];
+
+                              (*result).integer.set(isz - shift - 1, root_result);
+                              root_remainder_index = current_index;
+                              (*remainder_tmp).integer.set(current_index, root_remainder);
+                          }
+                          else {
+                              (*remainder_tmp).integer.set(current_index, ((*remainder).integer[current_index] - (*borrow).integer[current_index]) % (*divisor).integer[current_index]);
+                          } 
+                      }
+                      else {
+                          (*remainder_tmp).integer.set(current_index, fullDividendValue(current_index, borrow_value) - fullDivisorValue(current_index));
+                      }
+                      current_index++;
+
+                      // Debug
+                      if ((*remainder_tmp).integer[root_remainder_index] != root_remainder) {
+                          current_index--;
+                          current_index++;
+                      }
+                      // Debug
+                  }
+
+                  (*remainder) = (*remainder_tmp);
+                  (*remainder_tmp) = 0;
+
+                  if (!shift)
+                      break;
+
+                  //if ((*divisor).most_significant_index() == (*remainder).most_significant_index() &&
+                  //    (*divisor).integer[(*divisor).most_significant_index()] <= (*remainder).integer[(*remainder).most_significant_index()]) {
+                  //    shift--; // Debug
+                  //    shift++; // Debug
+                  //}
+                  //else {
+                      shift--;
+                      (*divisor).shrb(1);
+                  //}
+              }
+      }
+
+      is_negative = store_is_negative != v.is_negative;
+      (*remainder).is_negative = store_is_negative != v.is_negative;
+      if (premainder)
+          *premainder = *remainder;
+
+      *this = *result;
+      return *this;
+  }
+
+  bdig &div_old(const bdig &v, bdig *premainder = NULL) {
 
     if (!v)
       return *this;
@@ -1040,15 +1170,20 @@ bdig &operator-=(const bdig &v) {
       *this = *tmp;
       is_negative = !is_negative;
     } else {
-      // this - v
-      bool c = false;
-      int maxsi = v.most_significant_index();
-      maxsi--;
-      maxsi = maxsi < 0 ? 0 : maxsi;
-      for (int i = isz - 1; i >= 0; --i) {
-        if (i <= maxsi && !v.integer[i] && !c)
-          break;
-        c = sub_sop(i, v, c);
+
+      int msi_value = most_significant_index();
+
+      // Substruct Value from Divider while Divider > Value
+      for (int i = isz - 1; i >= msi_value; i--) {
+          if ((*this).integer[i] < v.integer[i]) {
+              // Borrow value from higher limb. If value == 0 shit to next
+              int j = i - 1;
+              for (; !(*this).integer[j] && j >= msi_value; j--) {
+                  (*this).integer.set(j,std::numeric_limits<T>::max());
+              }
+              (*this).integer.set(j, (*this).integer[j] - 1);
+          }
+          (*this).integer.set(i, (*this).integer[i] - v.integer[i]);
       }
     }
   } else {
@@ -1264,7 +1399,9 @@ bdig &operator=(const char *pstr) {
 
       pstr++;
     }
-    tmp = tmp.mul<T>(tmp10.pow(prc, false));
+    if (prc) {
+        tmp = tmp.mul<T>(tmp10.pow(prc, false));
+    }
     *this = tmp;
     is_negative = negative;
   }
