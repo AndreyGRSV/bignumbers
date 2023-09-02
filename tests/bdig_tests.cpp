@@ -682,19 +682,19 @@ void TestMathFunctionsPrime() {
 }
 
 // Test for Prime check functions
-TEST(BDigTest, MathFunctionsPrime)
+TEST(BDigTest, TestMathFunctionsPrime)
 {
-    TestMathFunctionsKaratsuba<unsigned char, 100>();
-    TestMathFunctionsKaratsuba<unsigned char, 1000>();
-    TestMathFunctionsKaratsuba<unsigned short, 100>();
-    TestMathFunctionsKaratsuba<unsigned short, 1000>();
-    TestMathFunctionsKaratsuba<unsigned int, 100>();
-    TestMathFunctionsKaratsuba<unsigned int, 1000>();
-    TestMathFunctionsKaratsuba<unsigned long long, 100>();
-    TestMathFunctionsKaratsuba<unsigned long long, 1000>();
+    TestMathFunctionsPrime<unsigned char, 100>();
+    TestMathFunctionsPrime<unsigned char, 1000>();
+    TestMathFunctionsPrime<unsigned short, 100>();
+    TestMathFunctionsPrime<unsigned short, 1000>();
+    TestMathFunctionsPrime<unsigned int, 100>();
+    TestMathFunctionsPrime<unsigned int, 1000>();
+    TestMathFunctionsPrime<unsigned long long, 100>();
+    TestMathFunctionsPrime<unsigned long long, 1000>();
 #ifdef __SIZEOF_INT128__
-    TestMathFunctionsKaratsuba<sag::uint128_t, 100>();
-    TestMathFunctionsKaratsuba<sag::uint128_t, 1000>();
+    TestMathFunctionsPrime<sag::uint128_t, 100>();
+    TestMathFunctionsPrime<sag::uint128_t, 1000>();
 #endif
 }
 
