@@ -1011,7 +1011,7 @@ unsigned PrimeNumbers[] = {
 #include <regex>
 
 class params {
-  using FunctionType = std::function<void(const params&)>;
+  using FunctionType = std::function<bool(const params&)>;
 
   struct data {
       FunctionType func;
@@ -1032,6 +1032,7 @@ class params {
           has_prefix = (param.find_first_of("--") != std::string::npos) ? 2 : 0;
           if (has_prefix) {
             param_value = param.substr(has_prefix);
+            m_passedParams[param_value] = std::vector<std::string>{};
           } else if (!param_value.empty()) {
               m_passedParams[param_value].push_back(*argV);
           }
@@ -1041,9 +1042,7 @@ class params {
            if (m_acceptedParams.find(p.first) == m_acceptedParams.end()) {
                std::cout << "Invalid parameter \"" << p.first << "\"" << std::endl
                    << "Accepted parameters:" << std::endl;
-               for (const auto& p : m_acceptedParams) {
-                   std::cout << p.second.help << std::endl;
-               }
+               help();
                return false;
            }
            auto e = m_acceptedParams[p.first];
@@ -1056,9 +1055,16 @@ class params {
                    return false;
                }
            }
-           m_acceptedParams[p.first].func(*this);
+           if (!m_acceptedParams[p.first].func(*this))
+               return false;
        }
        return true;
+    }
+
+    void help() const {
+        for (const auto& p : m_acceptedParams) {
+            std::cout << p.second.help << std::endl;
+        }
     }
 
     void add(const char* name, const char *chkexpr, FunctionType func, const char* help = nullptr) {
@@ -1095,6 +1101,8 @@ struct CalculateParams {
     int test_iterations = 1;
     int check_test_iterations = 10;
     int try_before_restart = 10;
+    std::string hexNumber;
+    std::string decNumber;
 };
 
 template <class bd_type>
@@ -1194,6 +1202,8 @@ public:
 template<typename T>
 void CalculatePrime(const CalculateParams& params) {
     T prime;
+    T bitvalue;
+    //T tmp;
 
     ::std::random_device rd;
     ::std::default_random_engine e1(rd());
@@ -1212,10 +1222,19 @@ void CalculatePrime(const CalculateParams& params) {
         std::string s = prime;
         std::reverse(s.begin(), s.end());
         prime = s.c_str();
+
+        bitvalue.set_bit(params.bits);
+        while (prime > bitvalue)
+            prime >>= 1;
+        prime.set_bit(params.bits, false);
+
+        prime.set_bit(params.bits - 1);
         prime.set_bit(0);
+
         std::cout << "Start from:" << (std::string)prime << std::endl;
     };
     getRNDNumber();
+    std::string ps1 = prime;
 
     int restart_cnt = 0;
     do {
@@ -1225,10 +1244,19 @@ void CalculatePrime(const CalculateParams& params) {
         }
         bool pr = true;
         for (size_t i = 0, size = sizeof(PrimeNumbers) / sizeof(unsigned); i < size; ++i) {
+
+            //std::string prime_str = prime;
+            //std::string reminder_str = prime % PrimeNumbers[i];
             if (!(prime % PrimeNumbers[i])) {
                 pr = false;
                 break;
             }
+            //tmp = prime;
+            //tmp.div_old(PrimeNumbers[i], &remainder);
+            //if (remainder == 0) {
+            //    pr = false;
+            //    break;
+            //}
         }
         if (pr) {
             MillerRabinTest <T>test;
@@ -1249,7 +1277,7 @@ void CalculatePrime(const CalculateParams& params) {
     if (prime.fermatest(params.check_test_iterations)) {
         ::std::cout << "Possible prime number:" << (std::string)prime << ::std::endl;
     } else {
-        std::cout << "fermatest failed. Start again" << std::endl;
+        std::cout << "fermatest failed for:" << (std::string)prime << std::endl << "Start again" << std::endl;
     }
 
 }
@@ -1258,6 +1286,9 @@ const auto ParamBitsName = "bits";
 const auto ParamNumTestIterations = "test-iterations";
 const auto ParamNumCheckTestIterations = "check-test-iterations";
 const auto ParamTryBeforeRestart = "try-before-restart";
+const auto ParamHexValue = "hex-value";
+const auto ParamDecValue = "dec-value";
+const auto ParamHelp = "help";
 
 int main(int argC, char** argV) {
 
@@ -1267,28 +1298,95 @@ int main(int argC, char** argV) {
             pr.bits = std::stoi(v.get_param(ParamBitsName));
             pr.digits10 = pr.bits * 301 / 1000 + 1;
             std::cout << "Bits set to:" << v.get_param(ParamBitsName) << std::endl;
-        }, "--bits\tValue should be the number up to 4096. E.g. 100, 200, 512 or 1024");
+            return true;
+        }, "--bits\t\t\tValue should be the number up to 4096. E.g. 100, 200, 512 or 1024");
 
     gParams.add(ParamNumTestIterations, "\\d{1,2}", [&](params v) {
         pr.test_iterations = std::stoi(v.get_param(ParamNumTestIterations));
         std::cout << "Iterations set to:" << pr.test_iterations << std::endl;
+        return true;
         }, "--test-iterations\tNumber of test iteration for Ferma test method, more is slower. E.g. 3, 10, 20");
 
     gParams.add(ParamNumCheckTestIterations, "\\d{1,3}", [&](params v) {
         pr.check_test_iterations = std::stoi(v.get_param(ParamNumCheckTestIterations));
         std::cout << "Iterations for final test is set to:" << pr.check_test_iterations << std::endl;
+        return true;
         }, "--check-test-iterations\tNumber of final test iterations for Ferma test method, more is slower. E.g. 3, 10, 100");
 
     gParams.add(ParamTryBeforeRestart, "\\d{1,3}", [&](params v) {
         pr.try_before_restart = std::stoi(v.get_param(ParamTryBeforeRestart));
         std::cout << "Number of try before new start is set to:" << pr.try_before_restart << std::endl;
+        return true;
         }, "--try-before-restart\tNumber of try before regeneration of start number. E.g. 3, 10, 100");
+
+    gParams.add(ParamHexValue, "([0-9,A-F,a-f]{2}\\s{0,1})+\\b", [&](params v) {
+        pr.hexNumber = v.get_param(ParamHexValue);
+        std::cout << "Number in hex format:" << pr.hexNumber << std::endl;
+        return true;
+        }, "--hex-value\t\tInput number in hex format. E.g. \"00 10 AA 00\"");
+
+    gParams.add(ParamDecValue, "[0-9,\\.]+\\b", [&](params v) {
+        pr.decNumber = v.get_param(ParamDecValue);
+        std::cout << "Number in dec format:" << pr.decNumber << std::endl;
+        return true;
+        }, "--dec-value\t\tInput number in decimal format. E.g. \"1234567890.00011\"");
+
+    gParams.add(ParamHelp, "help", [&](params v) {
+        std::cout << "calc_prime_number [PARAMS]" << std::endl;
+        gParams.help();
+        return false;
+        }, "--help\t\t\tPrint this information");
 
     if (!gParams.processing(argC, argV))
         return 1;
 
+    const auto digits = 10;
+    const auto prec = 30;
 
-    using elem_type = sag::uint128_t;
+    //"args": [
+    //    "--hex-value",
+    //        "\"4b 3b 4c a8 82 6a df ac 50 48 eb f1 6e 39 81 15\""
+    //]
+    if (!pr.hexNumber.empty()) {
+        ::sag::bdig <digits, prec> value;
+        const int size = value.most_significant_index();
+        std::regex expr("[0-9,A-F,a-f]{2}");
+        std::smatch results;
+        while (std::regex_search(pr.hexNumber, results, expr)) {
+            std::cout << results[0];
+            const int v = std::stoul(results[0], nullptr, 16);
+            value.shlb(1);
+            value.integer.set(size, v);
+            pr.hexNumber = results.suffix();
+        }
+        std::cout << std::endl << (std::string)value << std::endl;
+
+        return 0;
+    }
+
+    //"args": [
+    //    "--dec-value",
+    //        "\"10\""
+    //]
+    if (!pr.decNumber.empty()) {
+        ::sag::bdig <digits, prec> value;
+        const int size = value.most_significant_index();
+        value = pr.decNumber.c_str();
+        const int startPos = value.most_significant_index();
+        std::cout << std::endl;
+        for (int i = startPos; i < size + 1; i++) {
+            if (value.integer[i] < 0x10) {
+                std::cout << "0";
+            }
+            std::cout << std::hex << (int)value.integer[i] << " ";
+        }
+        std::cout << std::endl;
+
+        return 0;
+    }
+
+    //using elem_type = sag::uint128_t;
+    using elem_type = unsigned int;
     if (bits512 >= pr.bits) {
         CalculatePrime<::sag::bdig<digits512 * 2,0,elem_type>>(pr);
     } else if (bits1024 >= pr.bits) {

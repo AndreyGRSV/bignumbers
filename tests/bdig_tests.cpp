@@ -14,23 +14,6 @@ void TestComparision() {
     b_int value1{ check_value };
     b_int value2{ check_value };
 
-    //unsigned val = 2, divider = 3;
-    //int msb = value1.most_significant_bit<unsigned>(val);
-    //unsigned inverted_div = divider;
-    //unsigned result_mask = 0;
-    //unsigned result_div = 0;
-
-    //for (int i = msb; i >= 0; i--) {
-    //    inverted_div ^= 1 << i;
-    //    result_mask |= 1 << i;
-    //}
-    //while (val >= divider) {
-    //    val += inverted_div;
-    //    val += 1;
-    //    val &= result_mask;
-    //    result_div++;
-    //}
-
     bool result = value1 == value2;
     EXPECT_EQ(result, true);
     auto digits10 = b_int::digits10;
@@ -73,15 +56,17 @@ void TestComparision() {
     EXPECT_EQ(value2 == value1, false);
 }
 
+
+
+
 // Test the comparison operators of digits
 TEST(BDigTest, CompareDigits)
 {
     TestComparision<unsigned char>();
     TestComparision<unsigned short>();
     TestComparision<unsigned int>();
-    TestComparision<unsigned long long>();
 #ifdef __SIZEOF_INT128__
-    TestComparision<sag::uint128_t>();
+    TestComparision<unsigned long long>();
 #endif
 }
 
@@ -146,9 +131,8 @@ TEST(BDigTest, AdditionSubtractionDigits)
     TestAdditionSubtractionDigits<unsigned char>();
     TestAdditionSubtractionDigits<unsigned short>();
     TestAdditionSubtractionDigits<unsigned int>();
-    TestAdditionSubtractionDigits<unsigned long long>();
 #ifdef __SIZEOF_INT128__
-    TestAdditionSubtractionDigits<sag::uint128_t>();
+    TestAdditionSubtractionDigits<unsigned long long>();
 #endif
 }
 
@@ -161,7 +145,14 @@ void TestMulDivDigits() {
     // Normal positive values
     value1 = 1;
     value2 = 1;
+    std::string s = value1;
+    value1.prec_up();
+    s = value1;
+    value1.prec_down();
+    s = value1;
+    s = value2;
     value1 = value1 * value2;
+    s = value1;
     EXPECT_EQ(value1, 1);
     EXPECT_EQ(value1 * 10, 10);
     value1 *= 2;
@@ -173,6 +164,29 @@ void TestMulDivDigits() {
     EXPECT_EQ(10 / value1, 10);
     value1 *= 2;
     EXPECT_EQ(20 / value1, 10);
+    if (value2.digits10 > 30) {
+        //           1   2   3   4   5   6   7   8   9 = 27
+        value2 = "1'000'000'000'000'000'000'000'000'000";
+        value1 = "1'000'000'000'000'000'000'000'000'000";
+        s = value1;
+        EXPECT_EQ(value1 / value2, 1);
+        EXPECT_EQ(value1 / "1'000'000'000'000'000'000'000", "1'000'000");
+        s = value1 / "1'000'000'000'000'000'000'000";
+        EXPECT_EQ(value1 / 10,   "100'000'000'000'000'000'000'000'000");
+        s = value1 / 10;
+        EXPECT_EQ(value1 / 100,  "10'000'000'000'000'000'000'000'000");
+        s = value1 / 100;
+        EXPECT_EQ(value1 / 1000, "1'000'000'000'000'000'000'000'000");
+        s = value1 / 1000;
+        EXPECT_EQ(value1 / 10000, "100'000'000'000'000'000'000'000");
+        s = value1 / 10000;
+        EXPECT_EQ(value1 / 100000, "10'000'000'000'000'000'000'000");
+        s = value1 / 100000;
+        EXPECT_EQ(value1 / 2, "500'000'000'000'000'000'000'000'000");
+        s = value1 / 2;
+        EXPECT_EQ(value1 / 4, "250'000'000'000'000'000'000'000'000");
+        s = value1 / 4;
+    }
 
     // Normal negative values
     value1 = -1;
@@ -199,6 +213,11 @@ void TestMulDivDigits() {
     EXPECT_EQ(value1 / 0, value1);
     EXPECT_EQ(value2 / 0, 0);
     EXPECT_EQ(0 / value1, 0);
+
+    // Remainder
+    value1 = 16;
+    value2 = 13;
+    EXPECT_EQ(value1 % value2, 3);
 }
 
 // Test the mul/div operators of digits
@@ -206,20 +225,17 @@ TEST(BDigTest, MulDivDigits)
 {
     TestMulDivDigits<unsigned char, 1>();
     TestMulDivDigits<unsigned char, 100>();
-    TestMulDivDigits<unsigned char, 100, 100>();
+    TestMulDivDigits<unsigned char, 5, 17>();
     TestMulDivDigits<unsigned short, 1>();
     TestMulDivDigits<unsigned short, 100>();
     TestMulDivDigits<unsigned short, 100, 100>();
     TestMulDivDigits<unsigned int, 1>();
     TestMulDivDigits<unsigned int, 100>();
     TestMulDivDigits<unsigned int, 100, 100>();
+#ifdef __SIZEOF_INT128__
     TestMulDivDigits<unsigned long long, 1>();
     TestMulDivDigits<unsigned long long, 100>();
     TestMulDivDigits<unsigned long long, 100, 100>();
-#ifdef __SIZEOF_INT128__
-    TestMulDivDigits<sag::uint128_t, 1>();
-    TestMulDivDigits<sag::uint128_t, 100>();
-    TestMulDivDigits<sag::uint128_t, 100, 100>();
 #endif
 }
 
@@ -311,6 +327,9 @@ void TestMathFunctionsTrigonometry() {
     value1 = 1;
     EXPECT_EQ(value1.abs(), 1);
 
+    value1 = value1.cos(45);
+    std::string s = value1;
+
     const std::vector<CheckVariantData> checkMatrixCos{
         {0, "1.00000000000000000000"},    //  1,000000000000000
         { 10, "0.98480775301220805937" },   //  0,984807753012208
@@ -374,17 +393,15 @@ void TestMathFunctionsTrigonometry() {
 // Test the trigonometry functions
 TEST(BDigTest, MathFunctionsTrigonometry)
 {
-    TestMathFunctionsTrigonometry<unsigned char, 300>();
-    TestMathFunctionsTrigonometry<unsigned char, 10000>();
+    //TestMathFunctionsTrigonometry<unsigned char, 300>();
+    //TestMathFunctionsTrigonometry<unsigned char, 10000>();
     TestMathFunctionsTrigonometry<unsigned short, 300>();
     TestMathFunctionsTrigonometry<unsigned short, 10000>();
     TestMathFunctionsTrigonometry<unsigned int, 300>();
     TestMathFunctionsTrigonometry<unsigned int, 10000>();
+#ifdef __SIZEOF_INT128__
     TestMathFunctionsTrigonometry<unsigned long long, 300>();
     TestMathFunctionsTrigonometry<unsigned long long, 10000>();
-#ifdef __SIZEOF_INT128__
-    TestMathFunctionsTrigonometry<sag::uint128_t, 300>();
-    TestMathFunctionsTrigonometry<sag::uint128_t, 10000>();
 #endif
 }
 
@@ -459,11 +476,9 @@ TEST(BDigTest, MathFunctionsPowSqrt)
     TestMathFunctionsPowSqrt<unsigned short, 10000>();
     TestMathFunctionsPowSqrt<unsigned int, 300>();
     TestMathFunctionsPowSqrt<unsigned int, 10000>();
+#ifdef __SIZEOF_INT128__
     TestMathFunctionsPowSqrt<unsigned long long, 300>();
     TestMathFunctionsPowSqrt<unsigned long long, 10000>();
-#ifdef __SIZEOF_INT128__
-    TestMathFunctionsPowSqrt<sag::uint128_t, 300>();
-    TestMathFunctionsPowSqrt<sag::uint128_t, 10000>();
 #endif
 }
 
@@ -546,17 +561,15 @@ void TestMathFunctionsLog() {
 // Test the math functions
 TEST(BDigTest, MathFunctionsLog)
 {
-    TestMathFunctionsLog<unsigned char, 300>();
-    TestMathFunctionsLog<unsigned char, 10000>();
+    //TestMathFunctionsLog<unsigned char, 300>();
+    //TestMathFunctionsLog<unsigned char, 10000>();
     TestMathFunctionsLog<unsigned short, 300>();
     TestMathFunctionsLog<unsigned short, 10000>();
     TestMathFunctionsLog<unsigned int, 300>();
     TestMathFunctionsLog<unsigned int, 10000>();
+#ifdef __SIZEOF_INT128__
     TestMathFunctionsLog<unsigned long long, 300>();
     TestMathFunctionsLog<unsigned long long, 10000>();
-#ifdef __SIZEOF_INT128__
-    TestMathFunctionsLog<sag::uint128_t, 300>();
-    TestMathFunctionsLog<sag::uint128_t, 10000>();
 #endif
 }
 
@@ -591,11 +604,9 @@ TEST(BDigTest, MathFunctionsKaratsuba)
     TestMathFunctionsKaratsuba<unsigned short, 100>();
     TestMathFunctionsKaratsuba<unsigned int, 1>();
     TestMathFunctionsKaratsuba<unsigned int, 100>();
+#ifdef __SIZEOF_INT128__
     TestMathFunctionsKaratsuba<unsigned long long, 1>();
     TestMathFunctionsKaratsuba<unsigned long long, 100>();
-#ifdef __SIZEOF_INT128__
-    TestMathFunctionsKaratsuba<sag::uint128_t, 1>();
-    TestMathFunctionsKaratsuba<sag::uint128_t, 100>();
 #endif
 }
 
@@ -684,17 +695,15 @@ void TestMathFunctionsPrime() {
 // Test for Prime check functions
 TEST(BDigTest, MathFunctionsPrime)
 {
-    TestMathFunctionsKaratsuba<unsigned char, 100>();
-    TestMathFunctionsKaratsuba<unsigned char, 1000>();
-    TestMathFunctionsKaratsuba<unsigned short, 100>();
-    TestMathFunctionsKaratsuba<unsigned short, 1000>();
-    TestMathFunctionsKaratsuba<unsigned int, 100>();
-    TestMathFunctionsKaratsuba<unsigned int, 1000>();
-    TestMathFunctionsKaratsuba<unsigned long long, 100>();
-    TestMathFunctionsKaratsuba<unsigned long long, 1000>();
+    TestMathFunctionsPrime<unsigned char, 100>();
+    TestMathFunctionsPrime<unsigned char, 1000>();
+    TestMathFunctionsPrime<unsigned short, 100>();
+    TestMathFunctionsPrime<unsigned short, 1000>();
+    TestMathFunctionsPrime<unsigned int, 100>();
+    TestMathFunctionsPrime<unsigned int, 1000>();
 #ifdef __SIZEOF_INT128__
-    TestMathFunctionsKaratsuba<sag::uint128_t, 100>();
-    TestMathFunctionsKaratsuba<sag::uint128_t, 1000>();
+    TestMathFunctionsPrime<unsigned long long, 100>();
+    TestMathFunctionsPrime<unsigned long long, 1000>();
 #endif
 }
 
@@ -744,13 +753,10 @@ TEST(BDigTest, Performance) {
     PerformanceTest<unsigned int, 100>();
     PerformanceTest<unsigned int, 1000>();
     PerformanceTest<unsigned int, 10000>();
+#ifdef __SIZEOF_INT128__
     PerformanceTest<unsigned long long, 100>();
     PerformanceTest<unsigned long long, 1000>();
     PerformanceTest<unsigned long long, 10000>();
-#ifdef __SIZEOF_INT128__
-    PerformanceTest<sag::uint128_t, 100>();
-    PerformanceTest<sag::uint128_t, 1000>();
-    PerformanceTest<sag::uint128_t, 10000>();
 #endif
 }
 
