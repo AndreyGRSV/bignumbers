@@ -1008,10 +1008,6 @@ operator-(const Ti v) const {
   return *this - bdig(v);
 }
 bool isnegative() const { return is_negative; }
-bdig &operator-() {
-  is_negative = !is_negative;
-  return *this;
-}
 bdig operator-(const bdig &v) const {
   CRTHEAPOBJ(tmp, *this);
   *tmp -= v;

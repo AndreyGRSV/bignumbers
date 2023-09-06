@@ -14,23 +14,6 @@ void TestComparision() {
     b_int value1{ check_value };
     b_int value2{ check_value };
 
-    //unsigned val = 2, divider = 3;
-    //int msb = value1.most_significant_bit<unsigned>(val);
-    //unsigned inverted_div = divider;
-    //unsigned result_mask = 0;
-    //unsigned result_div = 0;
-
-    //for (int i = msb; i >= 0; i--) {
-    //    inverted_div ^= 1 << i;
-    //    result_mask |= 1 << i;
-    //}
-    //while (val >= divider) {
-    //    val += inverted_div;
-    //    val += 1;
-    //    val &= result_mask;
-    //    result_div++;
-    //}
-
     bool result = value1 == value2;
     EXPECT_EQ(result, true);
     auto digits10 = b_int::digits10;
@@ -199,6 +182,27 @@ void TestMulDivDigits() {
     EXPECT_EQ(value1 / 0, value1);
     EXPECT_EQ(value2 / 0, 0);
     EXPECT_EQ(0 / value1, 0);
+
+    if (digits >= 100 && precision == 0) {
+        // Shifting
+        value1 = "1'000'000'000'000'000'000'000'000'000'000";
+        value1 <<= 1;
+        EXPECT_EQ(value1, "2'000'000'000'000'000'000'000'000'000'000");
+        value1 >>= 1;
+        EXPECT_EQ(value1, "1'000'000'000'000'000'000'000'000'000'000");
+        value1 = 1;
+        value1 <<= 32;
+        EXPECT_EQ(value1, "4294967296");
+        value1 <<= 32;
+        EXPECT_EQ(value1, "18446744073709551616");
+        value1 >>= 64;
+        EXPECT_EQ(value1, 1);
+
+        // Remainder
+        value1 = "1'000'000'000'000'000'000'000'000'111'222";
+        value1 %= 1'000'000;
+        EXPECT_EQ(value1, 111'222);
+    }
 }
 
 // Test the mul/div operators of digits
@@ -449,6 +453,11 @@ void TestMathFunctionsPowSqrt() {
     };
 
     checkAllValues(checkMatrixSqrt, value1, &bd_type1::sqrt, "bdig::sqrt()");
+
+    using bd_type2 = ::sag::bdig<1, 0, T>;
+    bd_type2 one_elem = 4;
+    one_elem = one_elem.sqrt();
+    EXPECT_EQ(one_elem, 2);
 }
 // Test the math functions
 TEST(BDigTest, MathFunctionsPowSqrt)
