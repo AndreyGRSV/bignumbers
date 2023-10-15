@@ -1262,6 +1262,7 @@ void CalculatePrime(const CalculateParams& params) {
             MillerRabinTest <T>test;
             std::cout << std::endl << "------------------ MillerRabinTest.isprime(" << params.test_iterations << ") ----------------------" << std::endl;
             // if ( prime.is_prime() ) {
+            // if (prime.LucasLehmer(prime)) {
             if (test.isprime(prime, params.test_iterations)) {
                 break;
             }
@@ -1319,11 +1320,12 @@ int main(int argC, char** argV) {
         return true;
         }, "--try-before-restart\tNumber of try before regeneration of start number. E.g. 3, 10, 100");
 
-    gParams.add(ParamHexValue, "([0-9,A-F,a-f]{2}\\s{0,1})+\\b", [&](params v) {
+    gParams.add(ParamHexValue, "(H|0x).*([0-9,A-F,a-f]{2}\\s{0,1})+\\b", [&](params v) {
         pr.hexNumber = v.get_param(ParamHexValue);
+        std::transform(pr.hexNumber.begin(), pr.hexNumber.end(), pr.hexNumber.begin(), ::toupper);
         std::cout << "Number in hex format:" << pr.hexNumber << std::endl;
         return true;
-        }, "--hex-value\t\tInput number in hex format. E.g. \"00 10 AA 00\"");
+        }, "--hex-value\t\tInput number in hex format. E.g. \"H 00 10 AA 00\"");
 
     gParams.add(ParamDecValue, "[0-9,\\.]+\\b", [&](params v) {
         pr.decNumber = v.get_param(ParamDecValue);
@@ -1345,22 +1347,12 @@ int main(int argC, char** argV) {
 
     //"args": [
     //    "--hex-value",
-    //        "\"4b 3b 4c a8 82 6a df ac 50 48 eb f1 6e 39 81 15\""
+    //        "\"H 4b 3b 4c a8 82 6a df ac 50 48 eb f1 6e 39 81 15\""
     //]
     if (!pr.hexNumber.empty()) {
         ::sag::bdig <digits, prec> value;
-        const int size = value.most_significant_index();
-        std::regex expr("[0-9,A-F,a-f]{2}");
-        std::smatch results;
-        while (std::regex_search(pr.hexNumber, results, expr)) {
-            std::cout << results[0];
-            const int v = std::stoul(results[0], nullptr, 16);
-            value.shlb(1);
-            value.integer.set(size, v);
-            pr.hexNumber = results.suffix();
-        }
-        std::cout << std::endl << (std::string)value << std::endl;
-
+        value = pr.hexNumber;
+        std::cout << std::endl << value << std::endl;
         return 0;
     }
 
@@ -1370,23 +1362,19 @@ int main(int argC, char** argV) {
     //]
     if (!pr.decNumber.empty()) {
         ::sag::bdig <digits, prec> value;
-        const int size = value.most_significant_index();
-        value = pr.decNumber.c_str();
-        const int startPos = value.most_significant_index();
+        value = pr.decNumber;
         std::cout << std::endl;
-        for (int i = startPos; i < size + 1; i++) {
-            if (value.integer[i] < 0x10) {
-                std::cout << "0";
-            }
-            std::cout << std::hex << (int)value.integer[i] << " ";
-        }
+        std::cout << std::hex << std::uppercase << value;
         std::cout << std::endl;
 
         return 0;
     }
 
-    //using elem_type = sag::uint128_t;
-    using elem_type = unsigned int;
+#ifdef __SIZEOF_INT128__
+    using elem_type = unsigned long long;
+#else
+    using elem_type = unsigned;
+#endif
     if (bits512 >= pr.bits) {
         CalculatePrime<::sag::bdig<digits512 * 2,0,elem_type>>(pr);
     } else if (bits1024 >= pr.bits) {
