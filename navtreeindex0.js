@@ -1,0 +1,21 @@
+var NAVTREEINDEX0 =
+{
+"annotated.html":[0,0],
+"bdig_8hpp_source.html":[1,0,0],
+"classes.html":[0,1],
+"classsag_1_1bdig.html":[0,0,0,0],
+"classsag_1_1bdig_1_1buffer.html":[0,0,0,0,0],
+"files.html":[1,0],
+"hierarchy.html":[0,2],
+"index.html":[],
+"pages.html":[],
+"structsag_1_1conditional.html":[0,0,0,1],
+"structsag_1_1conditional_3_01false_00_01T_00_01F_01_4.html":[0,0,0,2],
+"structsag_1_1enable__if.html":[0,0,0,3],
+"structsag_1_1enable__if_3_01true_00_01T_01_4.html":[0,0,0,4],
+"structsag_1_1false__type.html":[0,0,0,5],
+"structsag_1_1is__bdig.html":[0,0,0,6],
+"structsag_1_1is__same.html":[0,0,0,7],
+"structsag_1_1is__same_3_01T_00_01T_01_4.html":[0,0,0,8],
+"structsag_1_1true__type.html":[0,0,0,9]
+};
