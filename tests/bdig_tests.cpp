@@ -1,4 +1,4 @@
-﻿#include "../bdig.hpp"
+#include "../bdig.hpp"
 #include <vector>
 #include <string>
 #include <chrono>
@@ -776,7 +776,7 @@ void TestMathFunctionsPrime() {
 }
 
 // Test for Prime check functions
-TEST(BDigTest, MathFunctionsPrime)
+TEST(BDigTest, TestMathFunctionsPrime)
 {
     TestMathFunctionsPrime<unsigned char, 100>();
     TestMathFunctionsPrime<unsigned char, 1000>();
@@ -787,6 +787,7 @@ TEST(BDigTest, MathFunctionsPrime)
 #ifdef __SIZEOF_INT128__
     TestMathFunctionsPrime<unsigned long long, 100>();
     TestMathFunctionsPrime<unsigned long long, 1000>();
+
 #endif
 }
 
