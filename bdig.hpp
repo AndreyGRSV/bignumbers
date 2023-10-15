@@ -423,7 +423,7 @@ class bdig {
                         upT borrow_value = 0;
                         if (need_value > (*remainder).integer[current_index]) {
                             upT full_value = need_value + (*borrow).integer[current_index] - (*remainder).integer[current_index];
-                            borrow_value = full_value / BaseValue + (full_value % BaseValue ? 1 : 0);
+                            borrow_value = full_value / BaseValue + ((full_value % BaseValue) ? 1 : 0);
                         }
                         upT diff = borrow_value < (*borrow).integer[current_index - 1] ?
                             (*borrow).integer[current_index - 1] - borrow_value :
@@ -655,12 +655,6 @@ class bdig {
     /// @param value value to add
     static void add(std::size_t index, bdig& result, T value)
     {
-        if (index < 0) // whole overflow
-        {
-            // TODO set overfolow value
-            return;
-        }
-
         upT x = result.integer[index];
         upT y = value;
         upT d = x + y;
@@ -1387,7 +1381,7 @@ bdig& operator+=(const bdig& v)
     bool c = false;
     std::size_t maxsi = v.most_significant_index();
     maxsi -= maxsi ? 1 : 0;
-    for (std::size_t i = isz - 1; i >= 0; i--) {
+    for (std::size_t i = isz - 1;; i--) {
         if (i <= maxsi && !v.integer[i] && !c)
             break;
         c = sum_sop(i, v, c);
