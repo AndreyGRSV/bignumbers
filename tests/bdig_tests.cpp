@@ -32,6 +32,15 @@ void TestAssignmentAndConversion() {
      bint_t value = ivalue;
      EXPECT_EQ(value, ivalue);
 
+     EXPECT_EQ(sag::is_bdig<bint_t>::value == true, true);
+     EXPECT_EQ(sag::is_bdig<::sag::bdig<100>>::value == true, true);
+     EXPECT_EQ((sag::is_bdig<::sag::bdig<100,100>>::value == true), true);
+     EXPECT_EQ((sag::is_bdig<::sag::bdig<100,100,T>>::value == true), true);
+     EXPECT_EQ(sag::is_bdig<char>::value == true, false);
+     EXPECT_EQ(sag::is_bdig<int>::value == true, false);
+     EXPECT_EQ(sag::is_bdig<unsigned>::value == true, false);
+
+
      std::string svalue = "99999999999999999999";
      value = svalue;
      EXPECT_EQ((std::string)value, svalue);
