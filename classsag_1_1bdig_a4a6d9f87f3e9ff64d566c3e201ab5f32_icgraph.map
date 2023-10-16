@@ -1,0 +1,4 @@
+<map id="sag::bdig::ln" name="sag::bdig::ln">
+<area shape="rect" id="node1" title="Compute natural logarithm of current bdig type value." alt="" coords="177,29,279,55"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a68a982a814917232c906bd6f4c802c01" title="Static function to compute power of bdig value by passed parameter using e Euler&#39;s number." alt="" coords="5,29,129,55"/>
+</map>

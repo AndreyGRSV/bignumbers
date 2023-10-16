@@ -7,7 +7,7 @@ var hierarchy =
     [ "sag::conditional< false, T, F >", "structsag_1_1conditional_3_01false_00_01T_00_01F_01_4.html", null ],
     [ "sag::enable_if< B, T >", "structsag_1_1enable__if.html", null ],
     [ "sag::enable_if< true, T >", "structsag_1_1enable__if_3_01true_00_01T_01_4.html", null ],
-    [ "sag::enable_if<!std::numeric_limits< unsigned char >::is_signed, unsignedint >", "structsag_1_1enable__if.html", null ],
+    [ "sag::enable_if<!std::numeric_limits< unsigned char >::is_signed, std::size_t >", "structsag_1_1enable__if.html", null ],
     [ "sag::false_type", "structsag_1_1false__type.html", [
       [ "sag::is_same< T, U >", "structsag_1_1is__same.html", null ]
     ] ],

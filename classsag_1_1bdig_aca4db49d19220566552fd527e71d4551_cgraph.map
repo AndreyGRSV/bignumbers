@@ -1,0 +1,4 @@
+<map id="sag::bdig::ln" name="sag::bdig::ln">
+<area shape="rect" id="node1" title="Static method to compute natural logarithm of passed bdig type value as parameter." alt="" coords="5,29,107,55"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a84161c90cbd3c40d49225bed71d12e4c" title="Calculate logarithm of current bdig value by base two." alt="" coords="155,29,272,55"/>
+</map>
