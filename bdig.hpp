@@ -185,6 +185,25 @@ class bdig {
                 }
             }
         }
+        /// @brief method for setting value to array of bdig value vithout any checks
+        /// @param idx index to element in buffer
+        /// @param _v value to set
+        inline void set_direct(std::size_t idx, const Tb _v) {
+            _buffer[idx] = _v;
+        }
+        /// @brief method for update of least significant index of buffer values after addition and substruction
+        /// @param pos start posision for searching of least significant index of element in buffer
+        /// @param operation if true - operation is addition, false - operation is substruction
+        void update_lsi(std::size_t pos, bool operation) {
+            if (operation) {
+                least_significant_index = pos ? _buffer[pos - 1] ? pos - 1 : pos : pos;
+            }
+            else {
+                least_significant_index = pos;
+                while (!_buffer[least_significant_index] && least_significant_index < size - 1)
+                    least_significant_index++;
+            }
+        }
         /// @brief getter of most index of element with value in array.
         /// @return index value
         inline std::size_t get_lsi() const {
@@ -196,6 +215,8 @@ class bdig {
     bool is_negative;  //!< holer of negative flag.
     static bdig i10;   //!< value of precision divider.
     const static T mask_max_bit = static_cast<T>(1) << (std::numeric_limits<T>::digits - 1); //!< mask of maximum bit for element type.
+    static bdig Result;
+    //DECLOBJ(Result);
 
 
     /// @brief Shift buffer to left on elements counter
@@ -1320,9 +1341,9 @@ static bool LucasLehmer(const bdig& p)
 /// @return modified value
 bdig operator-() const
 {
-    bdig result = *this;
-    result.is_negative = !is_negative;
-    return result;
+    Result = *this;
+    Result.is_negative = !is_negative;
+    return Result;
 }
 /// @brief Overload negation operator for current bdig type values.
 /// @return negated bdig type value
@@ -1357,9 +1378,9 @@ typename enable_if<std::numeric_limits<Ti>::is_integer, bdig>::type operator+(co
 /// @return result of operation
 bdig operator+(const bdig& v) const
 {
-    bdig tmp = *this;
-    tmp += v;
-    return tmp;
+    Result = *this;
+    Result += v;
+    return Result;
 }
 /// @brief Overload of addition assignment operator for bdig type values.
 /// @param v right value of operator
@@ -1382,12 +1403,13 @@ bdig& operator+=(const bdig& v)
     std::size_t maxsi = v.most_significant_index();
     maxsi -= maxsi ? 1 : 0;
     for (std::size_t i = isz - 1;; i--) {
-        if (i <= maxsi && !v.integer[i] && !c)
-            break;
-        c = sum_sop(i, v, c);
+        T val = integer[i];
+        integer.set_direct(i, val + v.integer[i] + (c ? 1 : 0));
+        c = integer[i] < val;
         if (!i)
             break;
     }
+    integer.update_lsi(std::min(v.most_significant_index(), most_significant_index()), true);
     return *this;
 }
 
@@ -1411,9 +1433,9 @@ bool isnegative() const
 /// @return result of operation
 bdig operator-(const bdig& v) const
 {
-    CRTHEAPOBJ(tmp, *this);
-    *tmp -= v;
-    return *tmp;
+    Result = *this;
+    Result -= v;
+    return Result;
 }
 /// @brief Overload of subtraction assignment operator for bdig type values.
 /// @param v right value of operator
@@ -1422,34 +1444,28 @@ bdig& operator-=(const bdig& v)
 {
     if ((!is_negative && !v.is_negative) || (is_negative && v.is_negative)) {
         if (*this < v) {
-            // v - this
             CRTHEAPOBJ(tmp, v);
+            // v - this
             *tmp -= *this;
             *this = *tmp;
             is_negative = !is_negative;
         } else {
-
             std::size_t msi_value = most_significant_index();
-
-            // Substruct Value from Divider while Divider > Value
+            msi_value -= msi_value ? 1 : 0;
+            bool carryFlag = false;
             for (std::size_t i = isz - 1; i >= msi_value; i--) {
-                if ((*this).integer[i] < v.integer[i]) {
-                    // Borrow value from higher limb. If value == 0 shit to next
-                    std::size_t j = i - 1;
-                    for (; !(*this).integer[j] && j >= msi_value; j--) {
-                        (*this).integer.set(j, std::numeric_limits<T>::max());
-                        if (!j)
-                            break;
-                    }
-                    (*this).integer.set(j, (*this).integer[j] - 1);
-                }
-                (*this).integer.set(i, (*this).integer[i] - v.integer[i]);
+                T val = integer[i];
+                integer.set_direct(i, val - v.integer[i] - (carryFlag? 1 : 0));
+                carryFlag = val < integer[i];
                 if (!i)
                     break;
             }
+            integer.update_lsi(most_significant_index(), false);
         }
     } else {
-        *this += -v;
+        CRTHEAPOBJ(tmp, v);
+        (*tmp).is_negative = !(*tmp).is_negative;
+        *this += *tmp;
     }
     return *this;
 }
@@ -2093,4 +2109,8 @@ operator/(const Ti v1, bdig& v2)
 /// @tparam prec size of part after point of bdig in decimal digits
 template<const int isz, const int prec, class T>
 bdig<isz, prec, T> bdig<isz, prec, T>::i10;
+
+template<const int isz, const int prec, class T>
+bdig<isz, prec, T> bdig<isz, prec, T>::Result;
+
 } // namespace sag

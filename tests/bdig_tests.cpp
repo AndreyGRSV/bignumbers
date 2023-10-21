@@ -1,4 +1,4 @@
-#include "../bdig.hpp"
+﻿#include "../bdig.hpp"
 #include <vector>
 #include <string>
 #include <chrono>
@@ -362,21 +362,21 @@ struct CheckVariantData
     const int iterations = 140;
 
     template <class T, class F>
-    std::string callFunc(const T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T (T::*)(int) const>, F> = 0) const
     {
         return (num.*func)(iterations);
     }
 
     template <class T, class F>
-    std::string callFunc(const T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T (T::*)(int, int) const>, F> = 0) const
     {
         return (num.*func)(iParam, iterations);
     }
 
     template <class T, class F>
-    std::string callFunc(const T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T &(T::*)(int, bool)>, F> = 0) const
     {
         auto numtmp = num;
@@ -384,38 +384,39 @@ struct CheckVariantData
     }
 
     template <class T, class F>
-    std::string callFunc(const T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T (T::*)() const>, F> = 0) const
     {
         return (num.*func)();
     }
 
     template <class T, class F>
-    std::string callFunc(const T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T (T::*)(const T &, int) const>, F> = 0) const
     {
         return (num.*func)(szParam, iterations);
     }
 
     template <class T, class F>
-    std::string callFunc(const T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T (T::*)(const T &, const T &, int) const>, F> = 0) const
     {
         return (num.*func)(szValue, szParam, iterations);
     }
 
     template <class T, class F>
-    std::string callFunc(const T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T (T::*)(const T &, const T &) const>, F> = 0) const
     {
         return (num.*func)(szValue, szParam);
     }
 
     template <class T, class F>
-    std::string callFunc(T num, const F func,
+    std::string callFunc(const T& num, const F func,
                          typename std::enable_if_t<std::is_same_v<F, T& (T::*)(int)>, F> = 0) const
     {
-        return (num.*func)(iParam);
+        auto tmp = num;
+        return (tmp.*func)(iParam);
     }
 public:
     CheckVariantData(int param, const char *want) : szValue(""), iParam(param), wantResult(want) {}
@@ -424,22 +425,22 @@ public:
     CheckVariantData(const char *param1, const char *param2, const char *want) : szValue(param1), szParam(param2), iParam(0), wantResult(want) {}
 
     template <class T, class F>
-    void Check(T num, const F func, const std::string_view& info) const
+    void Check(const F func, const std::string_view& info) const
     {
         // static_assert(std::is_same_v<F1, decltype(T1(T1::*)())>, "func1 is not a sapported. T1(T1::*)()");
         static_assert(std::is_member_function_pointer_v<F>, "T::F func is not a member function.");
 
-        num = szValue;
-        auto got = callFunc(num, func);
+        T tmp = szValue;
+        auto got = callFunc(tmp, func);
 
         EXPECT_EQ(got, wantResult) << info << ", szValue:" << (szValue ? szValue : "") << ", szParam:" << (szParam ? szParam : "") << ", iParam:" << iParam;
     }
 };
 
-auto checkAllValues = [](const std::vector<CheckVariantData> &vec, const auto num, const auto func, const std::string_view comment = "")
+auto checkAllValues = [](const std::vector<CheckVariantData> &vec, const auto& num, const auto func, const std::string_view comment = "")
 {
     for (const auto &d : vec) {
-        d.Check(num, func, comment);
+        d.Check<decltype(num)>(func, comment);
     }
 };
 
@@ -828,12 +829,6 @@ void PerformanceTest() {
 
         if constexpr (type == TestOpType::Div)
             str_value2 = "1234567890";
-        //if constexpr (type == TestOpType::Mul) {
-        //    str_value2 = "98109840984098409156481068456541684065964819841065106865710397464513210416435401645030648036034063974065004951094209420942097421970490274195049120974210974209742190274092740492097420929892490974202241";
-        //    str_value1 = "";
-        //    for (int i = 0; i < 10; i++)
-        //        str_value1 += str_value2;
-        //}
 
         auto getOpText = [] {
                 if constexpr (type == TestOpType::Mul)
