@@ -171,7 +171,7 @@ class bdig {
         const T& operator[](std::size_t idx) const {
             return _buffer[idx];
         }
-        /// @brief method for setting value to array of bdig value
+        /// @brief Method for setting value to array of bdig value
         /// @param idx index to element in buffer
         /// @param _v value to set
         inline void set(std::size_t idx, const Tb _v) {
@@ -185,7 +185,7 @@ class bdig {
                 }
             }
         }
-        /// @brief getter of most index of element with value in array.
+        /// @brief Getter of most index of element with value in array.
         /// @return index value
         inline std::size_t get_lsi() const {
             return least_significant_index;
@@ -1400,7 +1400,7 @@ typename enable_if<std::numeric_limits<Ti>::is_integer, bdig>::type operator-(co
 {
     return *this - bdig(v);
 }
-/// @brief getter of negative flag of bdig value.
+/// @brief Getter of negative flag of bdig value.
 /// @return bool value, true - value is negative, false - value is positive.
 bool isnegative() const
 {
@@ -1563,7 +1563,7 @@ bdig operator>>(std::size_t b) const
     tmp >>= b;
     return tmp;
 }
-/// @brief bitwise left shift assignment operator.
+/// @brief Bitwise left shift assignment operator.
 /// @param b number of bits to shift. The right values filled with zero.
 /// @return bdig type shifted value.
 bdig& operator<<=(const std::size_t b)
@@ -1572,7 +1572,7 @@ bdig& operator<<=(const std::size_t b)
     shl(b % std::numeric_limits<T>::digits);
     return *this;
 }
-/// @brief bitwise left shift operator.
+/// @brief Bitwise left shift operator.
 /// @param b number of bits to shift. The right values filled with zero.
 /// @return bdig type shifted value.
 bdig operator<<(const std::size_t b) const
