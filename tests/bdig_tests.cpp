@@ -277,7 +277,7 @@ void TestMulDivDigits() {
     EXPECT_EQ(10 / value1, 10);
     value1 *= 2;
     EXPECT_EQ(20 / value1, 10);
-    if (value2.digits10 > 30) {
+    if constexpr (value2.digits10 > 30) {
         //           1   2   3   4   5   6   7   8   9 = 27
         value2 = "1'000'000'000'000'000'000'000'000'000";
         value1 = "1'000'000'000'000'000'000'000'000'000";
@@ -812,7 +812,7 @@ void PerformanceTest() {
 
         using namespace std::chrono_literals;
         std::string str;
-        if (digits > 100)
+        if constexpr (digits > 100)
             str = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
         else
             str = "1234567890";

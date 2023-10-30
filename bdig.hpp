@@ -1341,9 +1341,9 @@ static bool LucasLehmer(const bdig& p)
 /// @return modified value
 bdig operator-() const
 {
-    Result = *this;
-    Result.is_negative = !is_negative;
-    return Result;
+    bdig result = *this;
+    result.is_negative = !is_negative;
+    return result;
 }
 /// @brief Overload negation operator for current bdig type values.
 /// @return negated bdig type value
@@ -1378,9 +1378,9 @@ typename enable_if<std::numeric_limits<Ti>::is_integer, bdig>::type operator+(co
 /// @return result of operation
 bdig operator+(const bdig& v) const
 {
-    Result = *this;
-    Result += v;
-    return Result;
+    bdig tmp = *this;
+    tmp += v;
+    return tmp;
 }
 /// @brief Overload of addition assignment operator for bdig type values.
 /// @param v right value of operator
@@ -1433,9 +1433,9 @@ bool isnegative() const
 /// @return result of operation
 bdig operator-(const bdig& v) const
 {
-    Result = *this;
-    Result -= v;
-    return Result;
+    bdig tmp = *this;
+    tmp -= v;
+    return tmp;
 }
 /// @brief Overload of subtraction assignment operator for bdig type values.
 /// @param v right value of operator
@@ -1900,13 +1900,13 @@ operator std::string() const
 #endif
         >::digits10;
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
-    if (isz * sizeof(T) >= sizeof(uint128_t)) {
+    if constexpr (isz * sizeof(T) >= sizeof(uint128_t)) {
         const int uint128_digits10 = 38;
         d10 = std::numeric_limits<uint128_t>::digits10;
         if (!d10)
             d10 = uint128_digits10;
     }
-    else if (isz * sizeof(T) >= sizeof(unsigned long long))
+    else if constexpr (isz * sizeof(T) >= sizeof(unsigned long long))
         d10 = std::numeric_limits<unsigned long long>::digits10;
     else
 #endif
@@ -1978,7 +1978,11 @@ operator std::string() const
     std::string::size_type sz = str.length();
     if (sz <= prec)
         str = std::string(prec - sz + 1, '0') + str;
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    if constexpr (prec) {
+#else
     if (prec){
+#endif
         str.insert(str.end() - prec, '.');
         std::string::size_type pos = str.find_last_not_of("0", std::string::npos);
         if (pos != std::string::npos) {
@@ -1994,7 +1998,7 @@ operator std::string() const
 /// @param number position of the bit. Started form 0 up to possible max position.
 /// If position is out of range method do nothing.
 /// @param val value of bit to set true or false. By default true.
-void set_bit(int number, bool val = true)
+void set_bit(std::size_t number, bool val = true)
 {
     std::size_t elements = number / std::numeric_limits<T>::digits;
     if (elements >= isz)

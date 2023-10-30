@@ -18,6 +18,7 @@ endif()
 
 
 if (MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_compile_options(/W4 /WX)
 else()
     add_compile_options(-Wall -Wextra -pedantic "$<$<CONFIG:RELEASE>:-msse3>")
