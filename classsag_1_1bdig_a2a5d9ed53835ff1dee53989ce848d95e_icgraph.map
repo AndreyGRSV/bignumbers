@@ -1,0 +1,4 @@
+<map id="sag::bdig::sin" name="sag::bdig::sin">
+<area shape="rect" id="node1" title="Calculate sinus of angle and place result to current bdig type. Iterations of calculating of series c..." alt="" coords="167,29,275,55"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a8767becbc9773137717e28c68da02adf" title="Convert bdig to hexadecimal string." alt="" coords="5,29,119,55"/>
+</map>
