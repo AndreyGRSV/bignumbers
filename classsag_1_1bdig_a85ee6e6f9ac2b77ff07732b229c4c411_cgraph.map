@@ -1,5 +1,5 @@
 <map id="sag::bdig::operator&lt;&lt;=" name="sag::bdig::operator&lt;&lt;=">
-<area shape="rect" id="node1" title="bitwise left shift assignment operator." alt="" coords="5,31,183,56"/>
+<area shape="rect" id="node1" title="Bitwise left shift assignment operator." alt="" coords="5,31,183,56"/>
 <area shape="rect" id="node2" href="$classsag_1_1bdig.html#a231282308e71d5019c0c5a06c056ac0e" title="Shift buffer to left on bits counter less then element size in bits." alt="" coords="235,5,343,31"/>
 <area shape="rect" id="node5" href="$classsag_1_1bdig.html#a2c87e0ad5872c264b38b196b1c83006b" title="Shift buffer to left on elements counter." alt="" coords="231,55,347,80"/>
 <area shape="rect" id="node3" href="$classsag_1_1bdig.html#a5f35f875f0eed9245113528574ea98b2" title="Method for setting bit value to any position of value array." alt="" coords="581,5,715,31"/>
