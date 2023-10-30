@@ -1,6 +1,0 @@
-<map id="sag::bdig::most_significant_bit" name="sag::bdig::most_significant_bit">
-<area shape="rect" id="node1" title="Find most significant bit in value." alt="" coords="387,31,607,56"/>
-<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a146fbe05f63a6bf04887b6f1238713d9" title="Classic division method for bdig type value by bits." alt="" coords="199,5,339,31"/>
-<area shape="rect" id="node3" href="$classsag_1_1bdig.html#aec61bcc75e26acc0bc6c962773452369" title="Calculate square root of current value of bdig type." alt="" coords="211,55,326,80"/>
-<area shape="rect" id="node4" href="$classsag_1_1bdig.html#a6f4595b34d71e0fa229ced4ce72497da" title="Simple check primally of current bdig value. Use it only for bdig value with up to 30 digits because ..." alt="" coords="5,55,151,80"/>
-</map>

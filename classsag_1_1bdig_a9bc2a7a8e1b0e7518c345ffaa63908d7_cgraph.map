@@ -1,4 +1,0 @@
-<map id="sag::bdig::fermatest" name="sag::bdig::fermatest">
-<area shape="rect" id="node1" title="Test current value of bdig type for possible primality." alt="" coords="5,5,159,31"/>
-<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a71653858f974e64026223cf6328fc4db" title="Iterative static method to calculate (base ^ exponent) % modulus using bitwise method." alt="" coords="207,5,392,31"/>
-</map>

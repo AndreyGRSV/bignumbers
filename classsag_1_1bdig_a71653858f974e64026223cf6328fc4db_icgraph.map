@@ -1,4 +1,0 @@
-<map id="sag::bdig::modular_pow2" name="sag::bdig::modular_pow2">
-<area shape="rect" id="node1" title="Iterative static method to calculate (base ^ exponent) % modulus using bitwise method." alt="" coords="207,5,392,31"/>
-<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a9bc2a7a8e1b0e7518c345ffaa63908d7" title="Test current value of bdig type for possible primality." alt="" coords="5,5,159,31"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="sag::bdig::shr" name="sag::bdig::shr">
-<area shape="rect" id="node1" title="Shift buffer to right on bits counter less then element size in bits." alt="" coords="5,5,115,31"/>
-<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a5f35f875f0eed9245113528574ea98b2" title="Method for setting bit value to any position of value array." alt="" coords="349,5,483,31"/>
-<area shape="rect" id="node3" href="$classsag_1_1bdig.html#a92ec8bfef655e6286962bf12b6abc226" title="Shift to right one element in digit buffer." alt="" coords="163,31,301,56"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="sag::bdig::shr_sop" name="sag::bdig::shr_sop">
-<area shape="rect" id="node1" title="Shift to right one element in digit buffer." alt="" coords="388,5,527,31"/>
-<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a0d109f61ed7c043e8df2ec31de3d096a" title="Shift buffer to right on bits counter less then element size in bits." alt="" coords="231,5,340,31"/>
-<area shape="rect" id="node3" href="$classsag_1_1bdig.html#acf2696928c6409f6b2e311ec1926889d" title="Overload of bitwise right shift assignment operator for current bdig type values." alt="" coords="5,5,183,31"/>
-</map>
