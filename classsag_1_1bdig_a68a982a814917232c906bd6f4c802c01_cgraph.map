@@ -1,0 +1,5 @@
+<map id="sag::bdig::powe" name="sag::bdig::powe">
+<area shape="rect" id="node1" title="Static function to compute power of bdig value by passed parameter using e Euler&#39;s number." alt="" coords="5,67,129,92"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#af3b9f4711166003b4fd3cde660c8eab8" title="Computes e (Euler&#39;s number) of current bdig type value." alt="" coords="177,29,291,55"/>
+<area shape="rect" id="node3" href="$classsag_1_1bdig.html#a4a6d9f87f3e9ff64d566c3e201ab5f32" title="Compute natural logarithm of current bdig type value." alt="" coords="183,103,285,128"/>
+</map>

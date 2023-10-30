@@ -1,0 +1,13 @@
+<map id="sag::bdig::operator=" name="sag::bdig::operator=">
+<area shape="rect" id="node1" title="Assignment operator of std::string to bdig value." alt="" coords="5,231,160,256"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a813e37fe756525cece1a7507988ad799" title="Template of multiplication method for types with can have the bigger type." alt="" coords="209,68,324,93"/>
+<area shape="rect" id="node4" href="$classsag_1_1bdig.html#a5fc2a3f2812ceeed44a40d30d4dc05f3" title="Calculate power of value of bdig type." alt="" coords="209,180,325,205"/>
+<area shape="rect" id="node9" href="$classsag_1_1bdig.html#aa258716587943010ff5aecb17249e645" title="Make bdig value integer by multiply to prec_value i10." alt="" coords="373,256,513,281"/>
+<area shape="rect" id="node10" href="$classsag_1_1bdig.html#a2c87e0ad5872c264b38b196b1c83006b" title="Shift buffer to left on elements counter." alt="" coords="209,281,325,307"/>
+<area shape="rect" id="node11" href="$classsag_1_1bdig.html#a5b5730be212dd8f2f46dd4a099aa0980" title="Shift buffer to right on elements counter." alt="" coords="208,331,325,356"/>
+<area shape="rect" id="node3" href="$classsag_1_1bdig.html#a44e24df9c737257f57cca1230e5faab2" title="Static method for add value to buffer element by index." alt="" coords="387,29,500,55"/>
+<area shape="rect" id="node5" href="$classsag_1_1bdig.html#afb560e36be0dd55a4fdc5236d4459b2a" title="Calculate power of value of bdig type. Internal method." alt="" coords="382,155,505,180"/>
+<area shape="rect" id="node7" href="$classsag_1_1bdig.html#af7a37ed430c433c69306b6069a347cdd" title="Division method for bdig type value by elements in buffer array." alt="" coords="793,117,903,143"/>
+<area shape="rect" id="node6" href="$classsag_1_1bdig.html#a90c3d708b702e0ad7b5904ba038cc749" title="Make bdig value with digits after point by dividing to prec_value i10." alt="" coords="561,155,720,180"/>
+<area shape="rect" id="node8" href="$classsag_1_1bdig.html#a285058aa231fa27e21bad1b92f2df422" title="Method to prepare and update i10 static value of precision divider." alt="" coords="768,205,928,231"/>
+</map>

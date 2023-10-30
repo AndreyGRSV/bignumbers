@@ -1,0 +1,8 @@
+<map id="sag::bdig::_pow" name="sag::bdig::_pow">
+<area shape="rect" id="node1" title="Calculate power of value of bdig type. Internal method." alt="" coords="5,31,128,56"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a90c3d708b702e0ad7b5904ba038cc749" title="Make bdig value with digits after point by dividing to prec_value i10." alt="" coords="176,56,335,81"/>
+<area shape="rect" id="node3" href="$classsag_1_1bdig.html#af7a37ed430c433c69306b6069a347cdd" title="Division method for bdig type value by elements in buffer array." alt="" coords="770,80,879,105"/>
+<area shape="rect" id="node4" href="$classsag_1_1bdig.html#a285058aa231fa27e21bad1b92f2df422" title="Method to prepare and update i10 static value of precision divider." alt="" coords="383,56,543,81"/>
+<area shape="rect" id="node5" href="$classsag_1_1bdig.html#a5fc2a3f2812ceeed44a40d30d4dc05f3" title="Calculate power of value of bdig type." alt="" coords="591,5,707,31"/>
+<area shape="rect" id="node6" href="$classsag_1_1bdig.html#aa258716587943010ff5aecb17249e645" title="Make bdig value integer by multiply to prec_value i10." alt="" coords="755,31,895,56"/>
+</map>

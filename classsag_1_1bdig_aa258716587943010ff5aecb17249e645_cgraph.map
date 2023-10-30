@@ -1,0 +1,8 @@
+<map id="sag::bdig::prec_up" name="sag::bdig::prec_up">
+<area shape="rect" id="node1" title="Make bdig value integer by multiply to prec_value i10." alt="" coords="5,84,145,109"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a285058aa231fa27e21bad1b92f2df422" title="Method to prepare and update i10 static value of precision divider." alt="" coords="193,109,353,134"/>
+<area shape="rect" id="node3" href="$classsag_1_1bdig.html#a5fc2a3f2812ceeed44a40d30d4dc05f3" title="Calculate power of value of bdig type." alt="" coords="401,58,517,84"/>
+<area shape="rect" id="node4" href="$classsag_1_1bdig.html#afb560e36be0dd55a4fdc5236d4459b2a" title="Calculate power of value of bdig type. Internal method." alt="" coords="565,58,688,84"/>
+<area shape="rect" id="node6" href="$classsag_1_1bdig.html#af7a37ed430c433c69306b6069a347cdd" title="Division method for bdig type value by elements in buffer array." alt="" coords="943,21,1052,46"/>
+<area shape="rect" id="node5" href="$classsag_1_1bdig.html#a90c3d708b702e0ad7b5904ba038cc749" title="Make bdig value with digits after point by dividing to prec_value i10." alt="" coords="736,58,895,84"/>
+</map>

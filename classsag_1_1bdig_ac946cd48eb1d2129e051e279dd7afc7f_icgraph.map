@@ -1,0 +1,4 @@
+<map id="sag::bdig::cos" name="sag::bdig::cos">
+<area shape="rect" id="node1" title="Calculate cosines of angle and place result to current bdig type. Iterations of calculating of series..." alt="" coords="161,29,272,55"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#affc1791952a97d3e03999f6b9f7015fd" title="Static method to calculate sinus of angle." alt="" coords="5,29,113,55"/>
+</map>

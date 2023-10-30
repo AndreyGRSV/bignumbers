@@ -1,0 +1,5 @@
+<map id="sag::bdig::shl_sop" name="sag::bdig::shl_sop">
+<area shape="rect" id="node1" title="Shift to left one element in digit buffer." alt="" coords="387,5,525,31"/>
+<area shape="rect" id="node2" href="$classsag_1_1bdig.html#a231282308e71d5019c0c5a06c056ac0e" title="Shift buffer to left on bits counter less then element size in bits." alt="" coords="231,5,339,31"/>
+<area shape="rect" id="node3" href="$classsag_1_1bdig.html#a85ee6e6f9ac2b77ff07732b229c4c411" title="Bitwise left shift assignment operator." alt="" coords="5,5,183,31"/>
+</map>
